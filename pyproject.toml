@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "splink_graph"
-version = "0.1.2"
+version = "0.0.1"
 description = ""
 authors = ["Theodore Manassis <theodore.manassis@digital.justice.gov.uk>"]
 license = "MIT"
