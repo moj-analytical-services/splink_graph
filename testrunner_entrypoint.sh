@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pytest -x --cov-report term-missing --cov=splink_data_normalisation tests/
+pytest -x --cov-report term-missing --cov=splink_graph tests/
 
 if [ $? -ne 0 ]
 then
