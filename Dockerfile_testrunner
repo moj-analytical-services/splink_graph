@@ -1,0 +1,9 @@
+FROM mamonu/moj-spark-jovyan:baseenv
+
+RUN pip install pytest pytest-cov poetry coveralls
+
+ADD . /myfiles
+WORKDIR /myfiles
+
+
+ENTRYPOINT ["/myfiles/testrunner_entrypoint.sh"]
