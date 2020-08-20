@@ -32,8 +32,10 @@ def graphdegreecounts(g):
 
 
 def graphdensity(g,directed = False):
-        """Takes as input a Graphframe graph g and a boolean variable directed 
-        and returns float number with the density of g
+        """Takes as input :
+        a Graphframe graph g and a boolean variable directed that signifies if the graph is directed or undirected
+        and returns:
+        float number with the density of g
         Density is calculated according to the graph theory definition of graph density (eg.  https://en.wikipedia.org/wiki/Dense_graph )
         Useful in order to quickly understand how dense a graph is.
         Can be either used on a graph that is not decomposed to connected components (but that will be a disconeected graph and it perhaps the result will not make sense)
