@@ -5,7 +5,7 @@ from pyspark.sql.window import Window
 from pyspark.sql.types import *
 import pyspark.sql.functions as f
 
-import graphframes
+from graphframes import *
 import networkx as nx
 
 
@@ -110,3 +110,40 @@ def subgraph_stats(g, mysparksession=spark):
     )
 
     return graphstats_df
+
+
+def articulationpoint(g, mysparksession=spark):
+    """
+
+    Takes as input :
+        a Graphframe graph g 
+    Returns:
+        a spark dataframe consiting of [node id,articulation of node] rows . 
+        If node is articulation point then its articulation is 1 else 0.
+
+    A vertex in an undirected connected graph is an articulation point (or cut vertex) if and only if removing it (and edges through it) disconnects the graph. 
+    Articulation points represent vulnerabilities in a connected network – single points whose failure would split the network into 2 or more components. 
+    For a disconnected undirected graph, an articulation point is a vertex which when removed it increases the number of connected components.
+
+    """
+
+    connectedCount = g.connectedComponents().select("component").distinct().count()
+    vertexList = g.vertices.rdd.map(lambda x: x.id).collect()
+    vertexArticulation = []
+
+    # For each vertex, generate a new graphframe missing that vertex
+    # and calculate connected component count. Then append count to
+    # the output
+
+    for vertex in vertexList:
+        graphFrame = GraphFrame(
+            g.vertices.filter('id != "' + vertex + '"'),
+            g.edges.filter('src != "' + vertex + '"').filter('dst !="' + vertex + '"'),
+        )
+        count = graphFrame.connectedComponents().select("component").distinct().count()
+        vertexArticulation.append((vertex, 1 if count > connectedCount else 0))
+
+    return mysparksession.createDataFrame(
+        mysparksession.sparkContext.parallelize(vertexArticulation),
+        ["id", "articulation"],
+    )
