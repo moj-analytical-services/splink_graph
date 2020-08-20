@@ -1,12 +1,14 @@
 [tool.poetry]
 name = "splink_graph"
-version = "0.0.1"
-description = ""
+version = "0.1.0"
+description = "a small set of graph functions"
 authors = ["Theodore Manassis <theodore.manassis@digital.justice.gov.uk>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
+pyspark = "2.4"
+networkx = "^2.4"
 
 [tool.poetry.dev-dependencies]
 

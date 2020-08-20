@@ -5,7 +5,7 @@ from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 from pyspark.sql import types
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def spark():
     
     conf = SparkConf()
