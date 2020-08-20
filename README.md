@@ -1,10 +1,10 @@
 # splink_graph
 
-splink_graph is an extensible graph utility library to handle graph data structures 
-that are created out of data linking processes 
+splink_graph is a small graph utility library in the Pyspark environment that works with graph data structures 
+created from the outputs of data linking processes (candicate pair results) of ![splink](https://github.com/moj-analytical-services/splink])
 
-
-splink_graph is envisioned as a small extension of tools to work on top of graph packages like graphframes and networkx
+The aim of splink_graph is to offer a small set of functions that work on top of graph packages like graphframes and networkx and that help with
+the process of data linkage
 
 
 
