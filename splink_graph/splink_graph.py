@@ -9,8 +9,15 @@ from graphframes import *
 import networkx as nx
 
 
+from pyspark.sql.types import *
+from networkx import *
+
+
 def graphdecompose(g):
-    """Takes as input a Graphframe graph g and returns a list of connected component graphs to iterate from."""
+    """Takes as input:
+           a Graphframe graph g (usually a disconnected undirected graph)
+       Returns: 
+           a list of connected component subgraphs to iterate from."""
 
     cc = g.connectedComponents()
     components = cc.select("component").distinct().rdd.flatMap(lambda x: x).collect()
@@ -19,8 +26,12 @@ def graphdecompose(g):
 
 
 def graphdegreecounts(g):
-    """Takes as input a Graphframe graph g and returns a spark datafrane with degrees of nodes and the count of those degrees.
-    Useful in order to quickly understand how connected a graph is
+    """Takes as input : 
+            a Graphframe graph g  
+       Returns:
+           a spark datafrane with degrees of nodes and the count of those degrees.
+   
+       Useful in order to quickly understand how connected a graph is
     """
 
     count = (
@@ -33,13 +44,19 @@ def graphdegreecounts(g):
 
 def graphdensity(g, directed=False):
     """Takes as input :
-        a Graphframe graph g and a boolean variable directed that signifies if the graph is directed or undirected
-        and returns:
-        float number with the density of g
-        Density is calculated according to the graph theory definition of graph density (eg.  https://en.wikipedia.org/wiki/Dense_graph )
-        Useful in order to quickly understand how dense a graph is.
-        Can be either used on a graph that is not decomposed to connected components (but that will be a disconeected graph and it perhaps the result will not make sense)
-        It is more useful when it is iterated on each subgraph of decomposed connected components.
+            a Graphframe graph g and a boolean variable directed that signifies if the graph is directed or undirected
+        
+        Returns:
+        
+            float number with the density of graph g
+        
+        
+        Density is calculated according to the graph theory definition of graph density (eg.  https://en.wikipedia.org/wiki/Dense_graph ).Useful in order to quickly understand how dense a graph is.
+        
+        Can be either used on a graph that is not decomposed to connected components 
+        (but that will be a disconeected graph and it perhaps the result will not make sense)
+        
+        This function however is more useful when iterated over each subgraph of decomposed connected components.
         """
 
     V = g.vertices.count()
@@ -60,10 +77,22 @@ def graphdensity(g, directed=False):
     return den
 
 
-def subgraph_stats(g,spark):
+def subgraph_stats(g, spark):
 
-    """Takes as input a Graphframe graph g which is not yet decomposed 
-    and returns a spark datafrane with the connected component id , the density of the subgraph and the size of the  subgraph.
+    """Takes as input:
+    
+          a Graphframe graph g that is disconnected (not yet decomposed) 
+    
+        Returns :
+        
+          This function iterates over each subgraph that is created by the connected components function and outputs
+          a spark datafrane with the connected component id , the density of the subgraph and the size of the  subgraph.
+          
+          
+          
+       
+        
+          
       
     """
 
@@ -112,7 +141,7 @@ def subgraph_stats(g,spark):
     return graphstats_df
 
 
-def articulationpoints(g,spark):
+def articulationpoints(g, spark):
     """
 
     Takes as input :
@@ -121,9 +150,12 @@ def articulationpoints(g,spark):
         a spark dataframe consiting of [node id,articulation of node] rows . 
         If node is articulation point then its articulation is 1 else 0.
 
-    A vertex in an undirected connected graph is an articulation point (or cut vertex) if and only if removing it (and edges through it) disconnects the graph. 
+    A vertex/node in an undirected connected graph is an articulation point (or cut vertex) if and only if removing it (and edges through it) disconnects the graph. 
+    
+        For a disconnected undirected graph, an articulation point is a vertex/node which when removed increases the number of connected components.
+    
     Articulation points represent vulnerabilities in a connected network – single points whose failure would split the network into 2 or more components. 
-    For a disconnected undirected graph, an articulation point is a vertex which when removed it increases the number of connected components.
+
 
     """
 
@@ -144,6 +176,58 @@ def articulationpoints(g,spark):
         vertexArticulation.append((vertex, 1 if count > connectedCount else 0))
 
     return spark.createDataFrame(
-        spark.sparkContext.parallelize(vertexArticulation),
-        ["id", "articulation"],
+        spark.sparkContext.parallelize(vertexArticulation), ["id", "articulation"],
     )
+
+
+def edgebetweenessdf(g):
+    """
+
+    Takes as input :
+        a Graphframe graph g (can be a disconnected graph or a connected one)
+    Returns:
+        a spark dataframe consiting of [src,dst, edgebetweeness] rows  
+        
+        
+    Betweenness of an edge e is the sum of the fraction of all-pairs shortest paths that pass through e
+    It is very similar metric to articulation but it works on edges instead of nodes.
+    
+    An edge with a high edge betweenness score represents a bridge-like connector between two parts of a graph, the removal of which may affect the communication between many pairs of nodes/vertices through the shortest paths between them.
+
+
+    """
+
+    srclist = []
+    dstlist = []
+    eblist = []
+    ebSchema = StructType(
+        [
+            StructField("src", StringType()),
+            StructField("dst", StringType()),
+            StructField("edgebetweeness", FloatType()),
+        ]
+    )
+
+    # create a networkx graph from a graphframe graph
+
+    nGraph = nx.Graph()
+    nGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())
+    nGraph.add_edges_from(g.edges.rdd.map(lambda x: (x.src, x.dst)).collect())
+
+    # use networkx eb function
+    eb = nx.edge_betweenness_centrality(nGraph, normalized=True, weight=None)
+    # great! but its a dict with a tuple as key (src,dst) and a value
+
+    for srcdst, v in eb.items():
+
+        # unpack (src,dst) tuple key
+        src, dst = srcdst
+
+        srclist.append(src)
+        dstlist.append(dst)
+        eblist.append(v)
+
+    # get it back to spark df format
+    ebdf = spark.createDataFrame(zip(srclist, dstlist, eblist), ebSchema)
+
+    return ebdf
