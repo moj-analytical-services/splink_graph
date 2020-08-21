@@ -60,10 +60,10 @@ def graphdensity(g, directed=False):
     return den
 
 
-def subgraph_stats(g, mysparksession=spark):
+def subgraph_stats(g,spark):
 
     """Takes as input a Graphframe graph g which is not yet decomposed 
-    and returns a spark datafrane with the connected component id , the density of the subgraph and the size of the subgraph.
+    and returns a spark datafrane with the connected component id , the density of the subgraph and the size of the  subgraph.
       
     """
 
@@ -105,14 +105,14 @@ def subgraph_stats(g, mysparksession=spark):
         denlist.append(d_sub)
         sizelist.append(count_sub)
 
-    graphstats_df = mysparksession.createDataFrame(
+    graphstats_df = spark.createDataFrame(
         zip(cplist, denlist, sizelist), subgraph_stats_schema
     )
 
     return graphstats_df
 
 
-def articulationpoint(g, mysparksession=spark):
+def articulationpoints(g,spark):
     """
 
     Takes as input :
@@ -143,7 +143,7 @@ def articulationpoint(g, mysparksession=spark):
         count = graphFrame.connectedComponents().select("component").distinct().count()
         vertexArticulation.append((vertex, 1 if count > connectedCount else 0))
 
-    return mysparksession.createDataFrame(
-        mysparksession.sparkContext.parallelize(vertexArticulation),
+    return spark.createDataFrame(
+        spark.sparkContext.parallelize(vertexArticulation),
         ["id", "articulation"],
     )
