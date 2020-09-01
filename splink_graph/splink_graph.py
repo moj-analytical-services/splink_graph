@@ -77,6 +77,46 @@ def graphdensity(g, directed=False):
     return den
 
 
+def shortest_paths(g):
+    
+    """
+    Takes as input :
+        a Graphframe graph g
+            
+    Returns: shortest paths from each vertex to the given set of landmark vertices, 
+    where landmarks are specified by vertex ID
+    
+    """
+    
+    
+    v = [row.asDict()["id"] for row in g.vertices.collect()]
+    return g.shortestPaths(landmarks=v)
+
+def overall_clustering_coefficient(g):
+        # dataframe containing num_triangles
+        num_triangles_frame = g.triangleCount()
+        
+        # dataframe containing degrees
+        degrees_frame = g.inDegrees
+        
+        
+        # caculate the number of triangles, x3
+        row_triangles = num_triangles_frame.agg({"count":"sum"}).collect()[0]
+        num_triangles = row_triangles.asDict()['sum(count)']
+        
+        # calculate the number of triples
+        degrees_frame = degrees_frame.withColumn("triples", 
+                                                 degrees_frame.inDegree*(degrees_frame.inDegree-1)/2.0)
+        row_triples = degrees_frame.agg({"triples":"sum"}).collect()[0]
+        num_triples = row_triples.asDict()['sum(triples)']
+        
+        
+        if num_triples==0:
+            return 0
+        else:
+            return (1.0*num_triangles/num_triples)
+
+
 def subgraph_stats(g, spark):
 
     """Takes as input:
@@ -88,12 +128,7 @@ def subgraph_stats(g, spark):
           This function iterates over each subgraph that is created by the connected components function and outputs
           a spark datafrane with the connected component id , the density of the subgraph and the size of the  subgraph.
           
-          
-          
-       
         
-          
-      
     """
 
     subgraph_stats_schema = StructType(
@@ -231,3 +266,54 @@ def edgebetweenessdf(g):
     ebdf = spark.createDataFrame(zip(srclist, dstlist, eblist), ebSchema)
 
     return ebdf
+
+
+
+def clustering_coeff(g):
+    """
+    Takes as input :
+        a Graphframe graph g
+            
+    Returns:
+    
+    """
+    
+    
+    triangles = g.triangleCount()
+    degree_links = g.degrees.withColumn('links', f.col('degree') * ( f.col('degree') - 1))
+    cc = triangles.select("id", "count").join(degree_links, on='id')
+    return cc.withColumn("clustering_coef", f.col('count') / (f.col('links') - (2 / f.col('degree'))) )
+
+
+def overall_clustering_coefficient(g):
+    """
+    Takes as input :
+        a Graphframe graph g
+            
+    Returns:
+    
+    """
+    
+    
+        # dataframe containing num_triangles
+        num_triangles_frame = g.triangleCount()
+        
+        # dataframe containing degrees
+        degrees_frame = g.inDegrees
+        
+        
+        # caculate the number of triangles, x3
+        row_triangles = num_triangles_frame.agg({"count":"sum"}).collect()[0]
+        num_triangles = row_triangles.asDict()['sum(count)']
+        
+        # calculate the number of triples
+        degrees_frame = degrees_frame.withColumn("triples", 
+                                                 degrees_frame.inDegree*(degrees_frame.inDegree-1)/2.0)
+        row_triples = degrees_frame.agg({"triples":"sum"}).collect()[0]
+        num_triples = row_triples.asDict()['sum(triples)']
+        
+        
+        if num_triples==0:
+            return 0
+        else:
+            return (1.0*num_triangles/num_triples)
