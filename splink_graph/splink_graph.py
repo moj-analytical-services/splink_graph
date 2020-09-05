@@ -4,13 +4,27 @@ from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
 from pyspark.sql.types import *
 import pyspark.sql.functions as f
-
 from graphframes import *
 import networkx as nx
-
-
 from pyspark.sql.types import *
 from networkx import *
+
+
+
+def _from_graphframe_to_nxGraph(g):
+       """Takes as input:
+       
+           a Graphframe graph g 
+           
+       Returns: 
+       
+           a networkx graph"""
+        
+    nxGraph = nx.Graph()
+    nxGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())
+    nxGraph.add_edges_from(g.edges.rdd.map(lambda x: (x.src, x.dst)).collect())
+    return nxGraph
+
 
 
 def graphdecompose(g):
