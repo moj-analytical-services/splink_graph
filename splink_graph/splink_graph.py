@@ -11,7 +11,15 @@ from networkx import *
 
 
 
-def from_graphframe_to_nxGraph(g):
+def _from_graphframe_to_nxGraph(g):
+       """Takes as input:
+       
+           a Graphframe graph g 
+           
+       Returns: 
+       
+           a networkx graph"""
+        
     nxGraph = nx.Graph()
     nxGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())
     nxGraph.add_edges_from(g.edges.rdd.map(lambda x: (x.src, x.dst)).collect())
