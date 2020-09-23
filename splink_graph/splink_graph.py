@@ -11,7 +11,7 @@ from networkx import *
 
 
 
-def _from_graphframe_to_nxGraph(g):
+def _from_unweighted_graphframe_to_nxGraph(g):
        """Takes as input:
        
            a Graphframe graph g 

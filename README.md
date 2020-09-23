@@ -26,21 +26,29 @@ Terminology
 Like any discipline, graphs come with their own set of nomenclature. 
 The following descriptions are intentionally simplified—more mathematically rigorous definitions can be found in any graph theory textbook.
 
-    Graph — A data structure G = (V, E) where V and E are a set of vertices and edges.
+`Graph` 
+    — A data structure G = (V, E) where V and E are a set of vertices/nodes and edges.
 
-    Vertex — Represents a single entity such as a person or an object .
+`Vertex/Node` 
+    — Represents a single entity such as a person or an object .
 
-    Edge — Represents a relationship between two vertices (e.g., are these two vertices friends on a social network?).
+`Edge` 
+    — Represents a relationship between two vertices (e.g., are these two vertices friends on a social network?).
 
-    Directed Graph vs. Undirected Graph — Denotes whether the relationship represented by edges is symmetric or not 
+`Directed Graph vs. Undirected Graph` 
+    — Denotes whether the relationship represented by edges is symmetric or not 
 
-    Subgraph — A set of vertices and edges that are a subset of the full graph's vertices and edges.
+`Weighted vs Unweighted Graph` 
+     — In weighted graphs edges have a weight that could represent cost of traversing or a similarity score or a distance score
+     — In unweighted graphs edges have no weight and simply show connections . example: course prerequisites
 
-    Degree — A vertex measurement quantifying the number of connected edges 
+`Subgraph` — A set of vertices and edges that are a subset of the full graph's vertices and edges.
 
-    Connected Component — A strongly connected subgraph, meaning that every vertex can reach the other vertices in the subgraph.
+`Degree` — A vertex measurement quantifying the number of connected edges 
 
-    Shortest Path — The fewest number of edges required to travel between two specific vertices.
+`Connected Component` — A strongly connected subgraph, meaning that every vertex can reach the other vertices in the subgraph.
+
+`Shortest Path` — The fewest number of edges required to travel between two specific vertices.
 
 
 
