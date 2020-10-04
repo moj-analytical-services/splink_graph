@@ -28,11 +28,12 @@ def _from_unweighted_graphframe_to_nxGraph(g):
 def _from_weighted_graphframe_to_nxGraph(g):
     """Takes as input:
        
-           an unweighted Graphframe graph g 
+           a weighted Graphframe graph g 
+           (note: edge weight column needs to be called as weight on the Graphframe)
            
        Returns: 
        
-           an unweighted networkx graph"""
+           a weighted networkx graph"""
 
     nxGraph = nx.Graph()
     nxGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())
@@ -114,6 +115,7 @@ def shortest_paths(g):
             
     Returns: shortest paths from each vertex to the given set of landmark vertices, 
     where landmarks are specified by vertex ID
+    this is using the Graphframes API. However its not as useful as its networkx graph equivalent.
     
     """
 
@@ -121,18 +123,70 @@ def shortest_paths(g):
     return g.shortestPaths(landmarks=v)
 
 
-def overall_clustering_coefficient(g):
+def _nx_compute_all_pairs_shortest_path(nxgraph, weight=None, normalize=False):
+
+    """
+    Takes as input :
+        a networkx graph nxGraph
+            
+    Returns: a dictionary of the computed shortest path lengths between all nodes in a graph. Accepts weighted or unweighted graphs
+    
+    """
+
+    lengths = nx.all_pairs_dijkstra_path_length(nxgraph, weight=weight)
+    lengths = dict(lengths)
+    return lengths
+
+
+def _nx_longest_shortest_path(lengths):
+    """
+    Takes as input :
+        the output of _nx_compute_all_pairs_shortest_path function which is a dictionary of shortest paths from the graph that function took as input
+            
+    Returns: the longest shortest path 
+    This is also known as the *diameter* of a graph
+
+    
+    """
+
+    max_length = max([max(lengths[i].values()) for i in lengths])
+    return max_length
+
+
+def global_clustering_coefficient(g):
+    """
+
+    Takes as input :
+        A graphframe Graph g
+    
+     Returns:  The global clustering coefficient of the graph g
+
+
+    The global clustering coefficient is based on triplets of nodes. A triplet is three nodes that are connected by either two (open triplet) 
+    or three (closed triplet) undirected ties.
+    A triangle graph therefore includes three closed triplets, one centered on each of the nodes (n.b. this means the three triplets in a triangle 
+    come from overlapping selections of nodes). The global clustering coefficient is the number of closed triplets (or 3 x triangles) over the total 
+    number of triplets (both open and closed). The first attempt to measure it was made by Luce and Perry (1949).[4] 
+    This measure gives an indication of the clustering in the whole network (global), 
+    and can be applied to both undirected and directed networks (often called transitivity, see Wasserman and Faust, 1994, page 243[5]). 
+
+    NB: experimental. needs testing.
+
+    """
+
     # dataframe containing num_triangles
     num_triangles_frame = g.triangleCount()
 
     # dataframe containing degrees
     degrees_frame = g.inDegrees
 
-    # caculate the number of triangles, x3
+    # calculate the number of triangles, x3  or also known as closed triplets
+
     row_triangles = num_triangles_frame.agg({"count": "sum"}).collect()[0]
     num_triangles = row_triangles.asDict()["sum(count)"]
 
-    # calculate the number of triples
+    # calculate the number of all triples (both open and closed)
+
     degrees_frame = degrees_frame.withColumn(
         "triples", degrees_frame.inDegree * (degrees_frame.inDegree - 1) / 2.0
     )
@@ -154,7 +208,7 @@ def subgraph_stats(g, spark):
         Returns :
         
           This function iterates over each subgraph that is created by the connected components function and outputs
-          a spark datafrane with the connected component id , the density of the subgraph and the size of the  subgraph.
+          a spark datafrane with the connected component id , the density of the subgraph and the size of the subgraph.
           
         
     """
@@ -243,11 +297,13 @@ def articulationpoints(g, spark):
     )
 
 
-def edgebetweenessdf(g):
+def edgebetweenessdf(g, weighted=False):
     """
 
     Takes as input :
         a Graphframe graph g (can be a disconnected graph or a connected one)
+        a boolean var called weighted: Is the graph weighted or not? 
+        
     Returns:
         a spark dataframe consiting of [src,dst, edgebetweeness] rows  
         
@@ -271,14 +327,16 @@ def edgebetweenessdf(g):
         ]
     )
 
-    # create a networkx graph from a graphframe graph
-
-    nGraph = nx.Graph()
-    nGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())
-    nGraph.add_edges_from(g.edges.rdd.map(lambda x: (x.src, x.dst)).collect())
-
     # use networkx eb function
-    eb = nx.edge_betweenness_centrality(nGraph, normalized=True, weight=None)
+
+    if weighted == False:
+        nGraph = _from_unweighted_graphframe_to_nxGraph(g)
+        eb = nx.edge_betweenness_centrality(nGraph, normalized=True, weight=None)
+
+    else:
+        wGraph = _from_weighted_graphframe_to_nxGraph(g)
+        eb = nx.edge_betweenness_centrality(wGraph, normalized=False, weight=weight)
+
     # great! but its a dict with a tuple as key (src,dst) and a value
 
     for srcdst, v in eb.items():
