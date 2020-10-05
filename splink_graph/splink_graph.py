@@ -132,9 +132,9 @@ def _nx_compute_all_pairs_shortest_path(nxgraph, weight=None, normalize=False):
     Returns: a dictionary of the computed shortest path lengths between all nodes in a graph. Accepts weighted or unweighted graphs
     
     """
-
+    
     lengths = nx.all_pairs_dijkstra_path_length(nxgraph, weight=weight)
-    lengths = dict(lengths)
+    lengths = dict(lengths)  # for compatibility with network 1.11 code
     return lengths
 
 
@@ -373,33 +373,4 @@ def clustering_coeff(g):
     )
 
 
-def overall_clustering_coefficient(g):
-    """
-    Takes as input :
-        a Graphframe graph g
-            
-    Returns:
-    
-    """
 
-    # dataframe containing num_triangles
-    num_triangles_frame = g.triangleCount()
-
-    # dataframe containing degrees
-    degrees_frame = g.inDegrees
-
-    # calculate the number of triangles, x3
-    row_triangles = num_triangles_frame.agg({"count": "sum"}).collect()[0]
-    num_triangles = row_triangles.asDict()["sum(count)"]
-
-    # calculate the number of triples
-    degrees_frame = degrees_frame.withColumn(
-        "triples", degrees_frame.inDegree * (degrees_frame.inDegree - 1) / 2.0
-    )
-    row_triples = degrees_frame.agg({"triples": "sum"}).collect()[0]
-    num_triples = row_triples.asDict()["sum(triples)"]
-
-    if num_triples == 0:
-        return 0
-    else:
-        return 1.0 * num_triangles / num_triples
