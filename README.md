@@ -31,7 +31,7 @@ Feel free to contribute by
 ---
 
 
-Terminology
+## Terminology
 
 Like any discipline, graphs come with their own set of nomenclature. 
 The following descriptions are intentionally simplified—more mathematically rigorous definitions can be found in any graph theory textbook.
