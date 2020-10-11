@@ -20,6 +20,16 @@ the process of data linkage
 
 ---
 
+## Contributing
+
+Feel free to contribute by 
+
+ * Forking the repository to suggest a change, and/or
+ * Starting an issue.
+
+
+---
+
 
 Terminology
 
