@@ -1,9 +1,19 @@
 # splink_graph
 
 
+![](https://img.shields.io/badge/spark-%3E%3D2.4.5-orange)
+
+![](https://img.shields.io/badge/pyarrow-%3C%3D%200.14.1-blue)
+
+
 ![](https://github.com/moj-analytical-services/splink_graph/raw/master/notebooks/splink_graph300x297.png)
 
 ---
+
+
+
+
+
 
 
 `splink_graph` is a small graph utility library in the Apache Spark environment, that works with graph data structures based on the `graphframe` package,

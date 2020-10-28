@@ -4,10 +4,103 @@ from pyspark.sql import SparkSession
 from pyspark.sql.window import Window
 from pyspark.sql.types import *
 import pyspark.sql.functions as f
+from pyspark.sql.functions import when
 from graphframes import *
 import networkx as nx
 from pyspark.sql.types import *
 from networkx import *
+
+
+def _graphharmoniser(df,colsrc,coldst):
+    df = df.withColumn(
+        "newsrc",
+        when(f.col(colsrc) < f.col(coldst), f.col(colsrc)).otherwise(f.col(coldst)),
+    )
+    df = df.withColumn(
+        "newdst",
+        when(f.col(coldst) > f.col(colsrc), f.col(coldst)).otherwise(f.col(colsrc)),
+    )
+    df = (
+        df.drop(colsrc)
+        .withColumn(colsrc, f.col("newsrc"))
+        .drop(coldst)
+        .withColumn(coldst, f.col("newdst"))
+        .drop("newsrc", "newdst")
+    )
+    return df
+
+
+
+def nodes_from_edge_df(df,src="src",dst="dst",component="component"):
+
+    out = df.groupby(component).agg(f.collect_set(src).alias("_1"),f.collect_list(dst).alias("_2"))
+    out = out.withColumn("nodes",f.array_union(f.col("_1"),f.col("_2"))).drop("_1","_2")
+    return out
+
+
+
+
+
+def subgraph_stats(df,component="component",weight="weight",src="src",dst="dst"):
+    
+    """
+    
+input spark dataframe:
+
++---+---+------+----------+
+|src|dst|weight| component|
++---+---+------+----------+
+|  f|  d|  0.67|         0|
+|  f|  g|  0.34|         0|
+|  b|  c|  0.56|8589934592|
+|  g|  h|  0.99|         0|
+|  a|  b|   0.4|8589934592|
+|  h|  i|   0.5|         0|
+|  h|  j|   0.8|         0|
+|  d|  e|  0.84|         0|
+|  e|  f|  0.65|         0|
++---+---+------+----------+
+    
+    
+output spark dataframe:
+
++----------+--------------------+---------+---------+------------------+
+| component|               nodes|nodecount|edgecount|           density|
++----------+--------------------+---------+---------+------------------+
+|8589934592|           [b, a, c]|        3|        2|0.6666666666666666|
+|         0|[h, g, f, e, d, i...|        7|        7|0.3333333333333333|
++----------+--------------------+---------+---------+------------------+
+
+
+    
+    
+    """
+    
+    
+
+    edgec = final.groupby(component).agg(f.count(weight).alias("edgecount"))
+    srcdf = final.groupby(component).agg(f.collect_set(src).alias('sources'))
+    dstdf = final.groupby(component).agg(f.collect_set(dst).alias('destinations'))
+    allnodes = srcdf.join(dstdf, on="component")
+    allnodes=allnodes.withColumn("nodes",f.array_union(f.col("sources"),f.col("destinations"))).withColumn("nodecount",f.size(f.col("nodes")))
+    
+    
+    output = allnodes.join(edgec,on="component")
+    
+    #density related calcs based on nodecount and max possible number of edges in an undirected graph
+    
+    output = output.withColumn("maxNumberOfEdgesundir", f.col("nodecount") * ( f.col("nodecount") - 1.0) / 2.0)
+    output = output.withColumn("density", (f.col("edgecount")/f.col("maxNumberOfEdgesundir"))).drop("sources","destinations","maxNumberOfEdgesundir")
+    
+    
+    return output
+    
+
+
+
+
+
+
 
 
 def _from_unweighted_graphframe_to_nxGraph(g):
@@ -41,336 +134,3 @@ def _from_weighted_graphframe_to_nxGraph(g):
         g.edges.rdd.map(lambda x: (x.src, x.dst, x.weight)).collect()
     )
     return nxGraph
-
-
-def graphdecompose(g):
-    """Takes as input:
-           a Graphframe graph g (usually a disconnected undirected graph)
-       Returns: 
-           a list of connected component subgraphs to iterate from."""
-
-    cc = g.connectedComponents()
-    components = cc.select("component").distinct().rdd.flatMap(lambda x: x).collect()
-    list_of_graphs = [cc.where(cc["component"] == c) for c in components]
-    return list_of_graphs
-
-
-def graphdegreecounts(g):
-    """Takes as input : 
-            a Graphframe graph g  
-       Returns:
-           a spark datafrane with degrees of nodes and the count of those degrees.
-   
-       Useful in order to quickly understand how connected a graph is
-    """
-
-    count = (
-        g.inDegrees.selectExpr("id as id", "inDegree as degree")
-        .groupBy("degree")
-        .count()
-    )
-    return count
-
-
-def graphdensity(g, directed=False):
-    """Takes as input :
-            a Graphframe graph g and a boolean variable directed that signifies if the graph is directed or undirected
-        
-        Returns:
-        
-            float number with the density of graph g
-        
-        
-        Density is calculated according to the graph theory definition of graph density (eg.  https://en.wikipedia.org/wiki/Dense_graph ).Useful in order to quickly understand how dense a graph is.
-        
-        Can be either used on a graph that is not decomposed to connected components 
-        (but that will be a disconeected graph and it perhaps the result will not make sense)
-        
-        This function however is more useful when iterated over each subgraph of decomposed connected components.
-        """
-
-    V = g.vertices.count()
-
-    # max number of edges in a directed graph
-    maxNumberOfEdgesdir = V * (V - 1)
-
-    # max number of edges in a directed graph
-    maxNumberOfEdgesundir = V * (V - 1) / 2
-
-    E = g.edges.count()
-
-    if directed == False:
-        den = E / maxNumberOfEdgesundir
-    else:
-        den = E / maxNumberOfEdgesdir
-
-    return den
-
-
-def shortest_paths(g):
-
-    """
-    Takes as input :
-        a Graphframe graph g
-            
-    Returns: shortest paths from each vertex to the given set of landmark vertices, 
-    where landmarks are specified by vertex ID
-    this is using the Graphframes API. However its not as useful as its networkx graph equivalent.
-    
-    """
-
-    v = [row.asDict()["id"] for row in g.vertices.collect()]
-    return g.shortestPaths(landmarks=v)
-
-
-def _nx_compute_all_pairs_shortest_path(nxgraph, weight=None, normalize=False):
-
-    """
-    Takes as input :
-        a networkx graph nxGraph
-            
-    Returns: a dictionary of the computed shortest path lengths between all nodes in a graph. Accepts weighted or unweighted graphs
-    
-    """
-    
-    lengths = nx.all_pairs_dijkstra_path_length(nxgraph, weight=weight)
-    lengths = dict(lengths)  # for compatibility with network 1.11 code
-    return lengths
-
-
-def _nx_longest_shortest_path(lengths):
-    """
-    Takes as input :
-        the output of _nx_compute_all_pairs_shortest_path function which is a dictionary of shortest paths from the graph that function took as input
-            
-    Returns: the longest shortest path 
-    This is also known as the *diameter* of a graph
-
-    
-    """
-
-    max_length = max([max(lengths[i].values()) for i in lengths])
-    return max_length
-
-
-def global_clustering_coefficient(g):
-    """
-
-    Takes as input :
-        A graphframe Graph g
-    
-     Returns:  The global clustering coefficient of the graph g
-
-
-    The global clustering coefficient is based on triplets of nodes. A triplet is three nodes that are connected by either two (open triplet) 
-    or three (closed triplet) undirected ties.
-    A triangle graph therefore includes three closed triplets, one centered on each of the nodes (n.b. this means the three triplets in a triangle 
-    come from overlapping selections of nodes). The global clustering coefficient is the number of closed triplets (or 3 x triangles) over the total 
-    number of triplets (both open and closed). The first attempt to measure it was made by Luce and Perry (1949).[4] 
-    This measure gives an indication of the clustering in the whole network (global), 
-    and can be applied to both undirected and directed networks (often called transitivity, see Wasserman and Faust, 1994, page 243[5]). 
-
-    NB: experimental. needs testing.
-
-    """
-
-    # dataframe containing num_triangles
-    num_triangles_frame = g.triangleCount()
-
-    # dataframe containing degrees
-    degrees_frame = g.inDegrees
-
-    # calculate the number of triangles, x3  or also known as closed triplets
-
-    row_triangles = num_triangles_frame.agg({"count": "sum"}).collect()[0]
-    num_triangles = row_triangles.asDict()["sum(count)"]
-
-    # calculate the number of all triples (both open and closed)
-
-    degrees_frame = degrees_frame.withColumn(
-        "triples", degrees_frame.inDegree * (degrees_frame.inDegree - 1) / 2.0
-    )
-    row_triples = degrees_frame.agg({"triples": "sum"}).collect()[0]
-    num_triples = row_triples.asDict()["sum(triples)"]
-
-    if num_triples == 0:
-        return 0
-    else:
-        return 1.0 * num_triangles / num_triples
-
-
-def subgraph_stats(g, spark):
-
-    """Takes as input:
-    
-          a Graphframe graph g that is disconnected (not yet decomposed) 
-    
-        Returns :
-        
-          This function iterates over each subgraph that is created by the connected components function and outputs
-          a spark datafrane with the connected component id , the density of the subgraph and the size of the subgraph.
-          
-        
-    """
-
-    subgraph_stats_schema = StructType(
-        [
-            StructField("component", StringType()),
-            StructField("density", FloatType()),
-            StructField("graphsize", IntegerType()),
-        ]
-    )
-    cplist = []
-    denlist = []
-    sizelist = []
-
-    list_of_subgraphs = graphdecompose(g)
-
-    for i in list_of_subgraphs:
-
-        _id = i.select("id").rdd.map(lambda a: a.id)
-        ids = _id.collect()
-
-        current_component = (
-            i.select("component").distinct().rdd.flatMap(lambda x: x).collect()
-        )
-
-        # create a subgraph for each component
-
-        _edges = g.edges.rdd.filter(lambda a: a.dst in ids or a.src in ids).toDF()
-        _vertices = g.vertices.rdd.filter(lambda a: a.id in ids).toDF()
-        g_sub = GraphFrame(_vertices, _edges)
-
-        # calculate some graph stats for each component/subgraph
-
-        d_sub = graphdensity(g_sub)
-        count_sub = g_sub.vertices.count()
-
-        # append lists with id and stats from each component
-        cplist.append(current_component[0])
-        denlist.append(d_sub)
-        sizelist.append(count_sub)
-
-    graphstats_df = spark.createDataFrame(
-        zip(cplist, denlist, sizelist), subgraph_stats_schema
-    )
-
-    return graphstats_df
-
-
-def articulationpoints(g, spark):
-    """
-
-    Takes as input :
-        a Graphframe graph g 
-    Returns:
-        a spark dataframe consiting of [node id,articulation of node] rows . 
-        If node is articulation point then its articulation is 1 else 0.
-
-    A vertex/node in an undirected connected graph is an articulation point (or cut vertex) if and only if removing it (and edges through it) disconnects the graph. 
-    
-        For a disconnected undirected graph, an articulation point is a vertex/node which when removed increases the number of connected components.
-    
-    Articulation points represent vulnerabilities in a connected network – single points whose failure would split the network into 2 or more components. 
-
-
-    """
-
-    connectedCount = g.connectedComponents().select("component").distinct().count()
-    vertexList = g.vertices.rdd.map(lambda x: x.id).collect()
-    vertexArticulation = []
-
-    # For each vertex, generate a new graphframe missing that vertex
-    # and calculate connected component count. Then append count to
-    # the output
-
-    for vertex in vertexList:
-        graphFrame = GraphFrame(
-            g.vertices.filter('id != "' + vertex + '"'),
-            g.edges.filter('src != "' + vertex + '"').filter('dst !="' + vertex + '"'),
-        )
-        count = graphFrame.connectedComponents().select("component").distinct().count()
-        vertexArticulation.append((vertex, 1 if count > connectedCount else 0))
-
-    return spark.createDataFrame(
-        spark.sparkContext.parallelize(vertexArticulation), ["id", "articulation"],
-    )
-
-
-def edgebetweenessdf(g, weighted=False):
-    """
-
-    Takes as input :
-        a Graphframe graph g (can be a disconnected graph or a connected one)
-        a boolean var called weighted: Is the graph weighted or not? 
-        
-    Returns:
-        a spark dataframe consiting of [src,dst, edgebetweeness] rows  
-        
-        
-    Betweenness of an edge e is the sum of the fraction of all-pairs shortest paths that pass through e
-    It is very similar metric to articulation but it works on edges instead of nodes.
-    
-    An edge with a high edge betweenness score represents a bridge-like connector between two parts of a graph, the removal of which may affect the communication between many pairs of nodes/vertices through the shortest paths between them.
-
-
-    """
-
-    srclist = []
-    dstlist = []
-    eblist = []
-    ebSchema = StructType(
-        [
-            StructField("src", StringType()),
-            StructField("dst", StringType()),
-            StructField("edgebetweeness", FloatType()),
-        ]
-    )
-
-    # use networkx eb function
-
-    if weighted == False:
-        nGraph = _from_unweighted_graphframe_to_nxGraph(g)
-        eb = nx.edge_betweenness_centrality(nGraph, normalized=True, weight=None)
-
-    else:
-        wGraph = _from_weighted_graphframe_to_nxGraph(g)
-        eb = nx.edge_betweenness_centrality(wGraph, normalized=False, weight=weight)
-
-    # great! but its a dict with a tuple as key (src,dst) and a value
-
-    for srcdst, v in eb.items():
-
-        # unpack (src,dst) tuple key
-        src, dst = srcdst
-
-        srclist.append(src)
-        dstlist.append(dst)
-        eblist.append(v)
-
-    # get it back to spark df format
-    ebdf = spark.createDataFrame(zip(srclist, dstlist, eblist), ebSchema)
-
-    return ebdf
-
-
-def clustering_coeff(g):
-    """
-    Takes as input :
-        a Graphframe graph g
-            
-    Returns:
-    
-    """
-
-    triangles = g.triangleCount()
-    degree_links = g.degrees.withColumn(
-        "links", f.col("degree") * (f.col("degree") - 1)
-    )
-    cc = triangles.select("id", "count").join(degree_links, on="id")
-    return cc.withColumn(
-        "clustering_coef", f.col("count") / (f.col("links") - (2 / f.col("degree")))
-    )
-
-
-
