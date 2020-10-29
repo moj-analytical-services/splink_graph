@@ -34,9 +34,44 @@ eboutSchema = StructType(
 
 
 @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
-def ebdf(pdf):
+def ebdf(pdf,src="src",dst="dst",distance="distance"):
     """
+
+Takes as input :
+        an edges spark dataframe (can be describing a disconnected graph or a connected one)
+    Returns:
+        a spark dataframe consiting of [src,dst, edgebetweeness] rows  
+        
+        
+    Betweenness of an edge e is the sum of the fraction of all-pairs shortest paths that pass through e
+    It is very similar metric to articulation but it works on edges instead of nodes.
     
+    An edge with a high edge betweenness score represents a bridge-like connector between two parts of a graph, the removal of which may affect the communication between many pairs of nodes/vertices through the shortest paths between them.
+
+
+
+
+    
+    
+input spark dataframe:
+
+---+---+------+-----------+--------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
+    
+    
+    
+output spark dataframe: 
     
 +---+---+----------+
 |src|dst|        eb|
@@ -61,8 +96,8 @@ def ebdf(pdf):
     dstlist = []
     eblist = []
     nxGraph = nx.Graph()
-    nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
-    eb = nx.edge_betweenness_centrality(nxGraph, normalized=True, weight="distance")
+    nxGraph = nx.from_pandas_edgelist(pdf, src, dst, distance)
+    eb = nx.edge_betweenness_centrality(nxGraph, normalized=True, weight=distance)
     for srcdst, v in eb.items():
         # unpack (src,dst) tuple key
         src, dst = srcdst
@@ -72,6 +107,7 @@ def ebdf(pdf):
         eblist.append(v)
 
     return pd.DataFrame(zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"])
+
 
 
 bridgesoutSchema = StructType(
@@ -89,8 +125,28 @@ bridgesoutSchema = StructType(
 def bridges(pdf):
 
     """
+
     
+input spark dataframe:
+
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
     
+
+
+output spark dataframe:
+
 +---+---+------+----------+--------------------+
 |src|dst|weight| component|            distance|
 +---+---+------+----------+--------------------+
@@ -100,6 +156,8 @@ def bridges(pdf):
 |  h|  i|   0.5|         0|                 0.5|
 |  h|  j|   0.8|         0| 0.19999999999999996|
 +---+---+------+----------+--------------------+
+
+
     
     
     
@@ -122,9 +180,40 @@ ecschema = StructType(
 @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
 def eigencentrality(pdf):
     """
+
+
+
+Eigenvector Centrality is an algorithm that measures the transitive influence or connectivity of nodes.
+Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality: A Family of Measures. 
+It was the first of the centrality measures that considered the transitive importance of a node in a graph, 
+rather than only considering its direct importance. 
+
+
+Relationships to high-scoring nodes contribute more to the score of a node than connections to low-scoring nodes. 
+A high score means that a node is connected to other nodes that have high scores. 
+
     
+
+input spark dataframe:
+
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
+  
+  
+output spark dataframe:    
     
-    
+
 +----+-------------------+
 |node|   eigen_centrality|
 +----+-------------------+
@@ -165,6 +254,34 @@ hcschema = StructType(
 def harmoniccentrality(pdf):
 
     """
+  
+Harmonic centrality (also known as valued centrality) is a variant of closeness centrality, that was invented 
+to solve the problem the original formula had when dealing with unconnected graphs.
+Harmonic centrality was proposed by Marchiori and Latora  while trying to come up with a sensible notion of "average shortest path".
+They suggested a different way of calculating the average distance to that used in the Closeness Centrality algorithm. 
+Rather than summing the distances of a node to all other nodes, the harmonic centrality algorithm sums the inverse of those distances. 
+This enables it deal with infinite values. 
+
+
+
+input spark dataframe:
+
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
+  
+  
+output spark dataframe:
     
 +----+-------------------+
 |node|harmonic_centrality|
@@ -203,6 +320,26 @@ tvschema = StructType(
 def transitivity(pdf):
 
     """
+
+
+input spark dataframe:
+
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
+    
+    
+output spark dataframe:
     
 +----------+------------+
 | component|transitivity|
