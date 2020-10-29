@@ -1,9 +1,9 @@
+
+![](https://img.shields.io/badge/spark-%3E%3D2.4.5-orange) ![](https://img.shields.io/badge/pyarrow-%3C%3D%200.14.1-blue)
+
 # splink_graph
 
 
-![](https://img.shields.io/badge/spark-%3E%3D2.4.5-orange)
-
-![](https://img.shields.io/badge/pyarrow-%3C%3D%200.14.1-blue)
 
 
 ![](https://github.com/moj-analytical-services/splink_graph/raw/master/notebooks/splink_graph300x297.png)
@@ -12,14 +12,8 @@
 
 
 
-
-
-
-
 `splink_graph` is a small graph utility library in the Apache Spark environment, that works with graph data structures based on the `graphframe` package,
 such as the ones created from the outputs of data linking processes (candicate pair results) of ![splink](https://github.com/moj-analytical-services/splink])  
-
-
 
 
 
@@ -28,14 +22,36 @@ the process of data linkage
 
 
 
+
 ---
 
-## Contributing
 
-Feel free to contribute by 
+## Using Pandas UDFs in Python: prerequisites
 
- * Forking the repository to suggest a change, and/or
- * Starting an issue.
+
+This package uses Pandas UDFs for certain functionality.Pandas UDFs are built on top of Apache Arrow and bring 
+the best of both worlds: the ability to define low-overhead, high-performance UDFs entirely in Python.
+
+With Apache Arrow, it is possible to exchange data directly between JVM and Python driver/executors with near-zero (de)serialization cost.
+However there are some things to be aware of if you want to use these functions.
+Since Arrow 0.15.0, a change in the binary IPC format requires an environment variable to be compatible with previous versions of Arrow <= 0.14.1. This is only necessary to do for PySpark users with versions 2.3.x and 2.4.x that have manually upgraded PyArrow to 0.15.0. The following can be added to conf/spark-env.sh to use the legacy Arrow IPC format:
+
+    ARROW_PRE_0_15_IPC_FORMAT=1`
+
+Another way is to put the following on spark .config
+
+    .config("spark.sql.execution.arrow.pyspark.enabled", "true")
+    .config("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
+
+
+This will instruct PyArrow >= 0.15.0 to use the legacy IPC format with the older Arrow Java that is in Spark 2.3.x and 2.4.x. Not setting this environment variable will lead to a similar error as described in [SPARK-29367](https://issues.apache.org/jira/browse/SPARK-29367) when running pandas_udfs or toPandas() with Arrow enabled.
+
+
+So all in all : either PyArrow needs to be at most in version 0.14.1 or if that cannot happen the above settings need to be be active.
+
+
+
+
 
 
 ---
@@ -87,3 +103,12 @@ The following descriptions are intentionally simplified—more mathematically ri
 
 
 
+
+---
+
+## Contributing
+
+Feel free to contribute by 
+
+ * Forking the repository to suggest a change, and/or
+ * Starting an issue.
