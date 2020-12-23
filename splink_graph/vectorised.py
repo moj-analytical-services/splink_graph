@@ -361,3 +361,63 @@ output spark dataframe:
     gr = pdf["component"].iloc[0]
 
     return pd.DataFrame([[gr] + [b]], columns=["component", "transitivity"])
+
+
+
+
+scschema = StructType(
+    [
+        StructField("node", StringType()),
+        StructField("cluster", DoubleType()),
+    ]
+)
+
+
+@pandas_udf(scschema, functionType=PandasUDFType.GROUPED_MAP)
+def spectral_clustering(pdf):
+
+    """
+input spark dataframe:
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  a|  b|  0.67|         0| 0.32999999999999996|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  c|  d|  0.99|         0|0.010000000000000009|
+|  a|  c|   0.4|8589934592|                 0.6|
++---+---+------+----------+--------------------+
+    
+    
+output spark dataframe:
+        
+---+---+------+---+
+|node   | cluster||
++---+---+--------+|
+|  a    |  1.0   ||
+|  b    | -1.0   ||        
+|  c    | -1.0   ||    
+|  d    |  1.0   ||
+---+---+------+---+
+    """
+
+    nxGraph = nx.Graph()
+    nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst")
+   
+    A = nx.to_numpy_array(nxGraph)
+    D = np.diag(A.sum(axis=1))
+    L = D-A
+
+    
+    
+
+    l, U = la.eigh(L)
+    f = U[:,1]
+    
+    cluster = np.ravel(np.sign(f))
+
+
+    
+
+    return pd.DataFrame(zip(list(nxGraph.nodes),cluster),columns=["node","cluster"])
+
+
