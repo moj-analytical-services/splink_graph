@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "splink_graph"
-version = "0.1.0"
+version = "0.2.1"
 description = "a small set of graph functions"
 authors = ["Theodore Manassis <theodore.manassis@digital.justice.gov.uk>"]
 license = "MIT"
