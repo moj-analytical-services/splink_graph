@@ -34,7 +34,7 @@ eboutSchema = StructType(
 
 
 @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
-def ebdf(pdf,src="src",dst="dst",distance="distance"):
+def ebdf(pdf, src="src", dst="dst", distance="distance"):
     """
 
 Takes as input :
@@ -46,13 +46,9 @@ Takes as input :
     Betweenness of an edge e is the sum of the fraction of all-pairs shortest paths that pass through e
     It is very similar metric to articulation but it works on edges instead of nodes.
     
-    An edge with a high edge betweenness score represents a bridge-like connector between two parts of a graph, the removal of which may affect the communication between many pairs of nodes/vertices through the shortest paths between them.
+    An edge with a high edge betweenness score represents a bridge-like connector between two parts of a graph, 
+    the removal of which may affect the communication between many pairs of nodes/vertices through the shortest paths between them.
 
-
-
-
-    
-    
 input spark dataframe:
 
 ---+---+------+-----------+--------------------+
@@ -87,9 +83,6 @@ output spark dataframe:
 |  h|  j| 0.2857143|
 +---+---+----------+
     
-    
-    
-    
     """
 
     srclist = []
@@ -107,7 +100,6 @@ output spark dataframe:
         eblist.append(v)
 
     return pd.DataFrame(zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"])
-
 
 
 bridgesoutSchema = StructType(
@@ -180,11 +172,9 @@ ecschema = StructType(
 @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
 def eigencentrality(pdf):
     """
-
-
-
 Eigenvector Centrality is an algorithm that measures the transitive influence or connectivity of nodes.
-Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality: A Family of Measures. 
+Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality: 
+A Family of Measures. 
 It was the first of the centrality measures that considered the transitive importance of a node in a graph, 
 rather than only considering its direct importance. 
 
@@ -347,10 +337,7 @@ output spark dataframe:
 |8589934592|         0.0|
 |         0|  0.33333334|
 +----------+------------+ 
-    
-    
-    
-    
+
     
     """
 
@@ -361,63 +348,3 @@ output spark dataframe:
     gr = pdf["component"].iloc[0]
 
     return pd.DataFrame([[gr] + [b]], columns=["component", "transitivity"])
-
-
-
-
-scschema = StructType(
-    [
-        StructField("node", StringType()),
-        StructField("cluster", DoubleType()),
-    ]
-)
-
-
-@pandas_udf(scschema, functionType=PandasUDFType.GROUPED_MAP)
-def spectral_clustering(pdf):
-
-    """
-input spark dataframe:
----+---+------+----------+---------------------+
-|src|dst|weight| component|            distance|
-+---+---+------+----------+--------------------+
-|  a|  b|  0.67|         0| 0.32999999999999996|
-|  b|  c|  0.56|8589934592| 0.43999999999999995|
-|  c|  d|  0.99|         0|0.010000000000000009|
-|  a|  c|   0.4|8589934592|                 0.6|
-+---+---+------+----------+--------------------+
-    
-    
-output spark dataframe:
-        
----+---+------+---+
-|node   | cluster||
-+---+---+--------+|
-|  a    |  1.0   ||
-|  b    | -1.0   ||        
-|  c    | -1.0   ||    
-|  d    |  1.0   ||
----+---+------+---+
-    """
-
-    nxGraph = nx.Graph()
-    nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst")
-   
-    A = nx.to_numpy_array(nxGraph)
-    D = np.diag(A.sum(axis=1))
-    L = D-A
-
-    
-    
-
-    l, U = la.eigh(L)
-    f = U[:,1]
-    
-    cluster = np.ravel(np.sign(f))
-
-
-    
-
-    return pd.DataFrame(zip(list(nxGraph.nodes),cluster),columns=["node","cluster"])
-
-

@@ -11,7 +11,7 @@ from pyspark.sql.types import *
 from networkx import *
 
 
-def _graphharmoniser(df,colsrc,coldst):
+def _graphharmoniser(df, colsrc, coldst):
     df = df.withColumn(
         "newsrc",
         when(f.col(colsrc) < f.col(coldst), f.col(colsrc)).otherwise(f.col(coldst)),
@@ -30,19 +30,19 @@ def _graphharmoniser(df,colsrc,coldst):
     return df
 
 
+def nodes_from_edge_df(df, src="src", dst="dst", component="component"):
 
-def nodes_from_edge_df(df,src="src",dst="dst",component="component"):
-
-    out = df.groupby(component).agg(f.collect_set(src).alias("_1"),f.collect_list(dst).alias("_2"))
-    out = out.withColumn("nodes",f.array_union(f.col("_1"),f.col("_2"))).drop("_1","_2")
+    out = df.groupby(component).agg(
+        f.collect_set(src).alias("_1"), f.collect_list(dst).alias("_2")
+    )
+    out = out.withColumn("nodes", f.array_union(f.col("_1"), f.col("_2"))).drop(
+        "_1", "_2"
+    )
     return out
 
 
+def subgraph_stats(df, component="component", weight="weight", src="src", dst="dst"):
 
-
-
-def subgraph_stats(df,component="component",weight="weight",src="src",dst="dst"):
-    
     """
     
 input spark dataframe:
@@ -75,32 +75,27 @@ output spark dataframe:
     
     
     """
-    
-    
 
     edgec = final.groupby(component).agg(f.count(weight).alias("edgecount"))
-    srcdf = final.groupby(component).agg(f.collect_set(src).alias('sources'))
-    dstdf = final.groupby(component).agg(f.collect_set(dst).alias('destinations'))
+    srcdf = final.groupby(component).agg(f.collect_set(src).alias("sources"))
+    dstdf = final.groupby(component).agg(f.collect_set(dst).alias("destinations"))
     allnodes = srcdf.join(dstdf, on="component")
-    allnodes=allnodes.withColumn("nodes",f.array_union(f.col("sources"),f.col("destinations"))).withColumn("nodecount",f.size(f.col("nodes")))
-    
-    
-    output = allnodes.join(edgec,on="component")
-    
-    #density related calcs based on nodecount and max possible number of edges in an undirected graph
-    
-    output = output.withColumn("maxNumberOfEdgesundir", f.col("nodecount") * ( f.col("nodecount") - 1.0) / 2.0)
-    output = output.withColumn("density", (f.col("edgecount")/f.col("maxNumberOfEdgesundir"))).drop("sources","destinations","maxNumberOfEdgesundir")
-    
-    
+    allnodes = allnodes.withColumn(
+        "nodes", f.array_union(f.col("sources"), f.col("destinations"))
+    ).withColumn("nodecount", f.size(f.col("nodes")))
+
+    output = allnodes.join(edgec, on="component")
+
+    # density related calcs based on nodecount and max possible number of edges in an undirected graph
+
+    output = output.withColumn(
+        "maxNumberOfEdgesundir", f.col("nodecount") * (f.col("nodecount") - 1.0) / 2.0
+    )
+    output = output.withColumn(
+        "density", (f.col("edgecount") / f.col("maxNumberOfEdgesundir"))
+    ).drop("sources", "destinations", "maxNumberOfEdgesundir")
+
     return output
-    
-
-
-
-
-
-
 
 
 def _from_unweighted_graphframe_to_nxGraph(g):
