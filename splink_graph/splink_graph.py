@@ -76,9 +76,9 @@ output spark dataframe:
     
     """
 
-    edgec = final.groupby(component).agg(f.count(weight).alias("edgecount"))
-    srcdf = final.groupby(component).agg(f.collect_set(src).alias("sources"))
-    dstdf = final.groupby(component).agg(f.collect_set(dst).alias("destinations"))
+    edgec = df.groupby(component).agg(f.count(weight).alias("edgecount"))
+    srcdf = df.groupby(component).agg(f.collect_set(src).alias("sources"))
+    dstdf = df.groupby(component).agg(f.collect_set(dst).alias("destinations"))
     allnodes = srcdf.join(dstdf, on="component")
     allnodes = allnodes.withColumn(
         "nodes", f.array_union(f.col("sources"), f.col("destinations"))
