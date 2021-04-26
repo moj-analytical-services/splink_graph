@@ -10,10 +10,11 @@ from graphframes import *
 import networkx as nx
 from networkx import *
 from networkx.algorithms import *
-from networkx.algorithms.distance_measures import diameter
+from networkx.algorithms.distance_measures import diameter,radius
+from networkx.algorithms.cluster import transitivity
 
 
-from pyspark.sql.functions import pandas_udf, PandasUDFType, sum, max, col, concat, lit
+from pyspark.sql.functions import pandas_udf, PandasUDFType
 import sys
 import os
 
@@ -350,15 +351,18 @@ output spark dataframe:
 
     return pd.DataFrame([[gr] + [b]], columns=["component", "transitivity"])
 
-@pandas_udf(StructType([
-    
-    StructField("component", LongType()),
-    StructField("diameter", IntegerType())
-                       
-                       ]), functionType=PandasUDFType.GROUPED_MAP)
 
-
-def subgraphdiameter(pdf):    
+@pandas_udf(
+    StructType(
+        [StructField("component", LongType()), 
+         StructField("diameter", IntegerType()),
+         StructField("radius", IntegerType())
+         StructField("transitivity", FloatType()),
+        ]
+    ),
+    functionType=PandasUDFType.GROUPED_MAP,
+)
+def diameter_and_radius(pdf):
     """    
     
 input spark dataframe:
@@ -380,21 +384,21 @@ input spark dataframe:
 
 output spark dataframe:
 
-+----------+--------+
-| component|diameter|
-+----------+--------+
-|8589934592|       2|
-|         0|       4|
-+----------+--------+
++----------+--------+------+
+| component|diameter|radius|
++----------+--------+------+
+|8589934592|       2|     1|
+|         0|       4|     2|
++----------+--------+------+
 
-    """ 
-    
+
+    """
+
     nxGraph = nx.Graph()
-    nxGraph=nx.from_pandas_edgelist(pdf, "src", "dst","weight" )
-    d=diameter(nxGraph)
-    
-    gr = pdf['component'].iloc[0]
-    
+    nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst")
+    d = diameter(nxGraph)
+    r = radius(nxGraph)
 
-        
-    return  pd.DataFrame([ [gr]+[d] ],columns=["component","diameter"])
+    gr = pdf["component"].iloc[0]
+
+    return pd.DataFrame([[gr] + [d]+[r]], columns=["component", "diameter","radius"])
