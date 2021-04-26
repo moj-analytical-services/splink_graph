@@ -10,6 +10,7 @@ from graphframes import *
 import networkx as nx
 from networkx import *
 from networkx.algorithms import *
+from networkx.algorithms.distance_measures import diameter
 
 
 from pyspark.sql.functions import pandas_udf, PandasUDFType, sum, max, col, concat, lit
@@ -348,3 +349,52 @@ output spark dataframe:
     gr = pdf["component"].iloc[0]
 
     return pd.DataFrame([[gr] + [b]], columns=["component", "transitivity"])
+
+@pandas_udf(StructType([
+    
+    StructField("component", LongType()),
+    StructField("diameter", IntegerType())
+                       
+                       ]), functionType=PandasUDFType.GROUPED_MAP)
+
+
+def subgraphdiameter(pdf):    
+    """    
+    
+input spark dataframe:
+
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
+
+
+output spark dataframe:
+
++----------+--------+
+| component|diameter|
++----------+--------+
+|8589934592|       2|
+|         0|       4|
++----------+--------+
+
+    """ 
+    
+    nxGraph = nx.Graph()
+    nxGraph=nx.from_pandas_edgelist(pdf, "src", "dst","weight" )
+    d=diameter(nxGraph)
+    
+    gr = pdf['component'].iloc[0]
+    
+
+        
+    return  pd.DataFrame([ [gr]+[d] ],columns=["component","diameter"])
