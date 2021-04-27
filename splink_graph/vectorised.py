@@ -32,6 +32,7 @@ eboutSchema = StructType(
         StructField("src", StringType()),
         StructField("dst", StringType()),
         StructField("eb", FloatType()),
+        StructField("component", LongType()),
     ]
 )
 
@@ -74,19 +75,19 @@ input spark dataframe:
 
 output spark dataframe: 
     
-+---+---+----------+
-|src|dst|        eb|
-+---+---+----------+
-|  b|  c| 0.6666667|
-|  b|  a| 0.6666667|
-|  f|  d|0.23809524|
-|  f|  g| 0.5714286|
-|  f|  e|0.23809524|
-|  d|  e|0.04761905|
-|  g|  h| 0.5714286|
-|  h|  i| 0.2857143|
-|  h|  j| 0.2857143|
-+---+---+----------+
++---+---+----------+----------+
+|src|dst|        eb| component|
++---+---+----------+----------+
+|  b|  c| 0.6666667|8589934592|
+|  b|  a| 0.6666667|8589934592|
+|  f|  d|0.23809524|         0|
+|  f|  g| 0.5714286|         0|
+|  f|  e|0.23809524|         0|
+|  d|  e|0.04761905|         0|
+|  g|  h| 0.5714286|         0|
+|  h|  i| 0.2857143|         0|
+|  h|  j| 0.2857143|         0|
++---+---+----------+----------+
     
     """
 
@@ -96,6 +97,9 @@ output spark dataframe:
     nxGraph = nx.Graph()
     nxGraph = nx.from_pandas_edgelist(pdf, src, dst, distance)
     eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=distance)
+    currentcomp = pdf["component"].iloc[0]  # access current component
+    compsize = pdf["component"].size  # how many nodes does this cluster have?
+
     for srcdst, v in eb.items():
         # unpack (src,dst) tuple key
         src, dst = srcdst
@@ -105,7 +109,8 @@ output spark dataframe:
         eblist.append(v)
 
     return pd.DataFrame(
-        zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"]
+        zip(srclist, dstlist, eblist, [currentcomp] * compsize),
+        columns=["src", "dst", "eb", "components"],
     )
 
 
