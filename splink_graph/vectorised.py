@@ -39,6 +39,7 @@ eboutSchema = StructType(
 def edgebetweeness(sparkdf):
     from pyspark.context import SparkContext, SparkConf
     from pyspark.sql import SparkSession
+
     conf = SparkConf()
     conf.set("spark.sql.execution.arrow.enabled", "true")
     conf.set("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
@@ -46,9 +47,9 @@ def edgebetweeness(sparkdf):
 
     @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
     def ebdf(pdf):
-        src="src"
-        dst="dst"
-        distance="distance"
+        src = "src"
+        dst = "dst"
+        distance = "distance"
 
         srclist = []
         dstlist = []
@@ -64,27 +65,12 @@ def edgebetweeness(sparkdf):
             dstlist.append(dst)
             eblist.append(v)
 
-        return pd.DataFrame(
-            zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"]
-        )
+        return pd.DataFrame(zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"])
 
-    out=sparkdf.groupby("component").apply(ebdf)
+    out = sparkdf.groupby("component").apply(ebdf)
     return out
 
 
-
-bridgesoutSchema = StructType(
-    [
-        StructField("src", StringType()),
-        StructField("dst", StringType()),
-        StructField("weight", DoubleType()),
-        StructField("component", LongType()),
-        StructField("distance", DoubleType()),
-    ]
-)
-
-
-@pandas_udf(bridgesoutSchema, PandasUDFType.GROUPED_MAP)
 def bridgesgroupedmap(sparkdf):
 
     """
@@ -120,8 +106,19 @@ output spark dataframe:
 
     """
 
+    bridgesoutSchema = StructType(
+        [
+            StructField("src", StringType()),
+            StructField("dst", StringType()),
+            StructField("weight", DoubleType()),
+            StructField("component", LongType()),
+            StructField("distance", DoubleType()),
+        ]
+    )
+
+    @pandas_udf(bridgesoutSchema, PandasUDFType.GROUPED_MAP)
     def br_p_udf(pdf):
-    
+
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
 
@@ -129,19 +126,11 @@ output spark dataframe:
         bpdf = pd.DataFrame(b, columns=["src", "dst",])
 
         return pd.merge(bpdf, pdf, how="inner", on=["src", "dst"])
-    
+
     out = sparkdf.groupby("component").apply(br_p_udf)
     return out
 
 
-ecschema = StructType(
-    [
-        StructField("node", StringType()),
-        StructField("eigen_centrality", DoubleType()),
-    ]
-)
-
-@pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
 def eigencentrality(sparkdf):
 
     """
@@ -192,31 +181,28 @@ output spark dataframe:
    
 
     """
+    ecschema = StructType(
+        [
+            StructField("node", StringType()),
+            StructField("eigen_centrality", DoubleType()),
+        ]
+    )
+
+    @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
     def eigenc(pdf):
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
         ec = eigenvector_centrality(nxGraph)
         return (
-        pd.DataFrame.from_dict(
-            ec, orient="index", columns=["eigen_centrality"]
+            pd.DataFrame.from_dict(ec, orient="index", columns=["eigen_centrality"])
+            .reset_index()
+            .rename(columns={"index": "node", "eigen_centrality": "eigen_centrality"})
         )
-        .reset_index()
-        .rename(
-            columns={"index": "node", "eigen_centrality": "eigen_centrality"}
-                )
-                )
+
     out = sparkdf.groupby("component").apply(eigenc)
     return out
-    
 
 
-hcschema = StructType(
-    [
-        StructField("node", StringType()),
-        StructField("harmonic_centrality", DoubleType()),
-    ]
-)
-@pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
 def harmoniccentrality(sparkdf):
 
     """
@@ -263,38 +249,30 @@ output spark dataframe:
 +----+-------------------+
     """
 
+    hcschema = StructType(
+        [
+            StructField("node", StringType()),
+            StructField("harmonic_centrality", DoubleType()),
+        ]
+    )
+
+    @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
     def harmc(pdf):
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
         hc = harmonic_centrality(nxGraph)
         return (
-            pd.DataFrame.from_dict(
-                hc, orient="index", columns=["harmonic_centrality"]
-            )
+            pd.DataFrame.from_dict(hc, orient="index", columns=["harmonic_centrality"])
             .reset_index()
             .rename(
-                columns={
-                    "index": "node",
-                    "harmonic_centrality": "harmonic_centrality",
-                }
+                columns={"index": "node", "harmonic_centrality": "harmonic_centrality",}
             )
         )
-    
+
     out = sparkdf.groupby("component").apply(harmc)
     return out
 
 
-@pandas_udf(
-    StructType(
-        [
-            StructField("component", LongType()),
-            StructField("diameter", IntegerType()),
-            StructField("radius", IntegerType()),
-            StructField("transitivity", FloatType()),
-        ]
-    ),
-    functionType=PandasUDFType.GROUPED_MAP,
-)
 def diameter_radius_transitivity(sparkdf):
     """    
 
@@ -326,8 +304,20 @@ def diameter_radius_transitivity(sparkdf):
 
 
     """
+
+    @pandas_udf(
+        StructType(
+            [
+                StructField("component", LongType()),
+                StructField("diameter", IntegerType()),
+                StructField("radius", IntegerType()),
+                StructField("transitivity", FloatType()),
+            ]
+        ),
+        functionType=PandasUDFType.GROUPED_MAP,
+    )
     def drt(pdf):
-        
+
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst")
         d = diameter(nxGraph)
