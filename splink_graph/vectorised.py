@@ -52,57 +52,7 @@ def edgebetweeness(sparkdf,group="component"):
 
     @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
     def ebdf(pdf, src="src", dst="dst", distance="distance"):
-    """
 
-    Takes as input :
-        an edges spark dataframe (can be describing a disconnected graph 
-        or a connected one)
-    Returns:
-        a spark dataframe consiting of [src,dst, edgebetweeness] rows  
-        
-        
-    Betweenness of an edge e is the sum of the fraction of all-pairs shortest paths 
-    that pass through e.
-    It is very similar metric to articulation but it works on edges instead of nodes.
-    
-    An edge with a high edge betweenness score represents a bridge-like connector 
-    between two parts of a graph, 
-    the removal of which may affect the communication between many pairs of nodes/vertices 
-    through the shortest paths between them.
-
-    input spark dataframe:
-
----+---+------+-----------+--------------------+
-|src|dst|weight| component|            distance|
-+---+---+------+----------+--------------------+
-|  f|  d|  0.67|         0| 0.32999999999999996|
-|  f|  g|  0.34|         0|  0.6599999999999999|
-|  b|  c|  0.56|8589934592| 0.43999999999999995|
-|  g|  h|  0.99|         0|0.010000000000000009|
-|  a|  b|   0.4|8589934592|                 0.6|
-|  h|  i|   0.5|         0|                 0.5|
-|  h|  j|   0.8|         0| 0.19999999999999996|
-|  d|  e|  0.84|         0| 0.16000000000000003|
-|  e|  f|  0.65|         0|                0.35|
-+---+---+------+----------+--------------------+
-
-    output spark dataframe: 
-    
-+---+---+----------+
-|src|dst|        eb|
-+---+---+----------+
-|  b|  c| 0.6666667|
-|  b|  a| 0.6666667|
-|  f|  d|0.23809524|
-|  f|  g| 0.5714286|
-|  f|  e|0.23809524|
-|  d|  e|0.04761905|
-|  g|  h| 0.5714286|
-|  h|  i| 0.2857143|
-|  h|  j| 0.2857143|
-+---+---+----------+
-    
-        """
 
         srclist = []
         dstlist = []
