@@ -91,7 +91,7 @@ bridgesoutSchema = StructType(
 
 
 @pandas_udf(bridgesoutSchema, PandasUDFType.GROUPED_MAP)
-def bridgesgroupedmap(pdf):
+def bridgesgroupedmap(sparkdf,group="component"):
 
     """
 
@@ -126,13 +126,18 @@ output spark dataframe:
 
     """
 
-    nxGraph = nx.Graph()
-    nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
+    def br_p_udf(pdf):
+    
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
 
-    b = bridges(nxGraph)
-    bpdf = pd.DataFrame(b, columns=["src", "dst",])
+        b = bridges(nxGraph)
+        bpdf = pd.DataFrame(b, columns=["src", "dst",])
 
-    return pd.merge(bpdf, pdf, how="inner", on=["src", "dst"])
+        return pd.merge(bpdf, pdf, how="inner", on=["src", "dst"])
+    
+    out = sparkdf.groupby(group).apply(br_p_udf)
+    return out
 
 
 ecschema = StructType(
@@ -142,9 +147,8 @@ ecschema = StructType(
     ]
 )
 
-
 @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
-def eigencentrality(pdf):
+def eigencentrality(pdf,group="component"):
 
     """
     
@@ -194,19 +198,22 @@ output spark dataframe:
    
 
     """
-
-    nxGraph = nx.Graph()
-    nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
-    ec = eigenvector_centrality(nxGraph)
-    return (
+    def eigenc(pdf):
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
+        ec = eigenvector_centrality(nxGraph)
+        return (
         pd.DataFrame.from_dict(
             ec, orient="index", columns=["eigen_centrality"]
         )
         .reset_index()
         .rename(
             columns={"index": "node", "eigen_centrality": "eigen_centrality"}
-        )
-    )
+                )
+                )
+    out = sparkdf.groupby(group).apply(eigenc)
+    return out
+    
 
 
 hcschema = StructType(
@@ -215,10 +222,8 @@ hcschema = StructType(
         StructField("harmonic_centrality", DoubleType()),
     ]
 )
-
-
 @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
-def harmoniccentrality(pdf):
+def harmoniccentrality(sparkdf,group="component"):
 
     """
 
@@ -264,21 +269,25 @@ output spark dataframe:
 +----+-------------------+
     """
 
-    nxGraph = nx.Graph()
-    nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
-    hc = harmonic_centrality(nxGraph)
-    return (
-        pd.DataFrame.from_dict(
-            hc, orient="index", columns=["harmonic_centrality"]
+    def harmc(pdf):
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
+        hc = harmonic_centrality(nxGraph)
+        return (
+            pd.DataFrame.from_dict(
+                hc, orient="index", columns=["harmonic_centrality"]
+            )
+            .reset_index()
+            .rename(
+                columns={
+                    "index": "node",
+                    "harmonic_centrality": "harmonic_centrality",
+                }
+            )
         )
-        .reset_index()
-        .rename(
-            columns={
-                "index": "node",
-                "harmonic_centrality": "harmonic_centrality",
-            }
-        )
-    )
+    
+    out = sparkdf.groupby(group).apply(harmc)
+    return out
 
 
 @pandas_udf(
@@ -292,10 +301,10 @@ output spark dataframe:
     ),
     functionType=PandasUDFType.GROUPED_MAP,
 )
-def diameter_radius_transitivity(pdf):
+def diameter_radius_transitivity(sparkdf,group="component"):
     """    
 
-input spark dataframe:
+    input spark dataframe:
 
 ---+---+------+----------+---------------------+
 |src|dst|weight| component|            distance|
@@ -312,7 +321,7 @@ input spark dataframe:
 +---+---+------+----------+--------------------+
 
 
-output spark dataframe:
+    output spark dataframe:
 
 +----------+--------+------+
 | component|diameter|radius|
@@ -323,16 +332,20 @@ output spark dataframe:
 
 
     """
+    def drt(pdf):
+        
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst")
+        d = diameter(nxGraph)
+        r = radius(nxGraph)
+        t = transitivity(nxGraph)
 
-    nxGraph = nx.Graph()
-    nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst")
-    d = diameter(nxGraph)
-    r = radius(nxGraph)
-    t = transitivity(nxGraph)
+        gr = pdf["component"].iloc[0]  # access component id
 
-    gr = pdf["component"].iloc[0]  # access component id
+        return pd.DataFrame(
+            [[gr] + [d] + [r] + [t]],
+            columns=["component", "diameter", "radius", "transitivity"],
+        )
 
-    return pd.DataFrame(
-        [[gr] + [d] + [r] + [t]],
-        columns=["component", "diameter", "radius", "transitivity"],
-    )
+    out = sparkdf.groupby(group).apply(drt)
+    return out
