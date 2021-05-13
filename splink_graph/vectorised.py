@@ -36,11 +36,25 @@ eboutSchema = StructType(
 )
 
 
-@pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
-def ebdf(pdf, src="src", dst="dst", distance="distance"):
+
+
+
+
+
+
+def edgebetweeness(sparkdf,group="component"):
+    from pyspark.context import SparkContext, SparkConf
+    from pyspark.sql import SparkSession
+    conf = SparkConf()
+    conf.set("spark.sql.execution.arrow.enabled", "true")
+    conf.set("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
+    sc = SparkContext.getOrCreate(conf=conf)
+
+    @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
+    def ebdf(pdf, src="src", dst="dst", distance="distance"):
     """
 
-Takes as input :
+    Takes as input :
         an edges spark dataframe (can be describing a disconnected graph 
         or a connected one)
     Returns:
@@ -56,7 +70,7 @@ Takes as input :
     the removal of which may affect the communication between many pairs of nodes/vertices 
     through the shortest paths between them.
 
-input spark dataframe:
+    input spark dataframe:
 
 ---+---+------+-----------+--------------------+
 |src|dst|weight| component|            distance|
@@ -72,7 +86,7 @@ input spark dataframe:
 |  e|  f|  0.65|         0|                0.35|
 +---+---+------+----------+--------------------+
 
-output spark dataframe: 
+    output spark dataframe: 
     
 +---+---+----------+
 |src|dst|        eb|
@@ -90,23 +104,29 @@ output spark dataframe:
     
     """
 
-    srclist = []
-    dstlist = []
-    eblist = []
-    nxGraph = nx.Graph()
-    nxGraph = nx.from_pandas_edgelist(pdf, src, dst, distance)
-    eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=distance)
-    for srcdst, v in eb.items():
-        # unpack (src,dst) tuple key
-        src, dst = srcdst
+        srclist = []
+        dstlist = []
+        eblist = []
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, src, dst, distance)
+        eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=distance)
+        for srcdst, v in eb.items():
+            # unpack (src,dst) tuple key
+            src, dst = srcdst
 
-        srclist.append(src)
-        dstlist.append(dst)
-        eblist.append(v)
+            srclist.append(src)
+            dstlist.append(dst)
+            eblist.append(v)
 
-    return pd.DataFrame(
-        zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"]
-    )
+        return pd.DataFrame(
+            zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"]
+        )
+
+    out=sparkdf.groupby(group).apply(ebdf)
+    return out
+
+
+
 
 
 bridgesoutSchema = StructType(
