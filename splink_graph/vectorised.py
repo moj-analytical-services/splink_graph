@@ -51,8 +51,10 @@ def edgebetweeness(sparkdf,group="component"):
     sc = SparkContext.getOrCreate(conf=conf)
 
     @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
-    def ebdf(pdf, src="src", dst="dst", distance="distance"):
-
+    def ebdf(pdf):
+        src="src"
+        dst="dst"
+        distance="distance"
 
         srclist = []
         dstlist = []
