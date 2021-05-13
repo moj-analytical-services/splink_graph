@@ -36,13 +36,7 @@ eboutSchema = StructType(
 )
 
 
-
-
-
-
-
-
-def edgebetweeness(sparkdf,group="component"):
+def edgebetweeness(sparkdf):
     from pyspark.context import SparkContext, SparkConf
     from pyspark.sql import SparkSession
     conf = SparkConf()
@@ -74,7 +68,7 @@ def edgebetweeness(sparkdf,group="component"):
             zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"]
         )
 
-    out=sparkdf.groupby(group).apply(ebdf)
+    out=sparkdf.groupby("component").apply(ebdf)
     return out
 
 
@@ -91,7 +85,7 @@ bridgesoutSchema = StructType(
 
 
 @pandas_udf(bridgesoutSchema, PandasUDFType.GROUPED_MAP)
-def bridgesgroupedmap(sparkdf,group="component"):
+def bridgesgroupedmap(sparkdf):
 
     """
 
@@ -136,7 +130,7 @@ output spark dataframe:
 
         return pd.merge(bpdf, pdf, how="inner", on=["src", "dst"])
     
-    out = sparkdf.groupby(group).apply(br_p_udf)
+    out = sparkdf.groupby("component").apply(br_p_udf)
     return out
 
 
@@ -148,7 +142,7 @@ ecschema = StructType(
 )
 
 @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
-def eigencentrality(pdf,group="component"):
+def eigencentrality(sparkdf):
 
     """
     
@@ -211,7 +205,7 @@ output spark dataframe:
             columns={"index": "node", "eigen_centrality": "eigen_centrality"}
                 )
                 )
-    out = sparkdf.groupby(group).apply(eigenc)
+    out = sparkdf.groupby("component").apply(eigenc)
     return out
     
 
@@ -223,7 +217,7 @@ hcschema = StructType(
     ]
 )
 @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
-def harmoniccentrality(sparkdf,group="component"):
+def harmoniccentrality(sparkdf):
 
     """
 
@@ -286,7 +280,7 @@ output spark dataframe:
             )
         )
     
-    out = sparkdf.groupby(group).apply(harmc)
+    out = sparkdf.groupby("component").apply(harmc)
     return out
 
 
@@ -301,7 +295,7 @@ output spark dataframe:
     ),
     functionType=PandasUDFType.GROUPED_MAP,
 )
-def diameter_radius_transitivity(sparkdf,group="component"):
+def diameter_radius_transitivity(sparkdf):
     """    
 
     input spark dataframe:
@@ -347,5 +341,5 @@ def diameter_radius_transitivity(sparkdf,group="component"):
             columns=["component", "diameter", "radius", "transitivity"],
         )
 
-    out = sparkdf.groupby(group).apply(drt)
+    out = sparkdf.groupby("component").apply(drt)
     return out
