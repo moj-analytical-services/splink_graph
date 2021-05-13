@@ -102,7 +102,7 @@ def edgebetweeness(sparkdf,group="component"):
 |  h|  j| 0.2857143|
 +---+---+----------+
     
-    """
+        """
 
         srclist = []
         dstlist = []
@@ -124,8 +124,6 @@ def edgebetweeness(sparkdf,group="component"):
 
     out=sparkdf.groupby(group).apply(ebdf)
     return out
-
-
 
 
 
