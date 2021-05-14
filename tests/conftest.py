@@ -5,9 +5,10 @@ from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 from pyspark.sql import types
 
+
 @pytest.fixture(scope="module")
 def spark():
-    
+
     conf = SparkConf()
 
     conf.set("spark.sql.shuffle.partitions", "1")
@@ -18,7 +19,6 @@ def spark():
     sc = SparkContext.getOrCreate(conf=conf)
 
     spark = SparkSession(sc)
-
 
     SPARK_EXISTS = True
 
