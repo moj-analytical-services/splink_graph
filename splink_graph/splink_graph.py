@@ -5,7 +5,6 @@ from pyspark.sql.window import Window
 from pyspark.sql.types import *
 import pyspark.sql.functions as f
 from pyspark.sql.functions import when
-from graphframes import *
 import networkx as nx
 from pyspark.sql.types import LongType,StringType,FloatType,DoubleType
 from networkx import *
