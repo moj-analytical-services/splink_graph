@@ -32,6 +32,7 @@ eboutSchema = StructType(
         StructField("src", StringType()),
         StructField("dst", StringType()),
         StructField("eb", FloatType()),
+        StructField("component", LongType()),
     ]
 )
 
@@ -57,6 +58,9 @@ def edgebetweeness(sparkdf):
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, src, dst, distance)
         eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=distance)
+        currentcomp = pdf["component"].iloc[0]  # access current component
+        compsize = pdf["component"].size  # how many nodes does this cluster have?
+
         for srcdst, v in eb.items():
             # unpack (src,dst) tuple key
             src, dst = srcdst
@@ -65,7 +69,10 @@ def edgebetweeness(sparkdf):
             dstlist.append(dst)
             eblist.append(v)
 
-        return pd.DataFrame(zip(srclist, dstlist, eblist), columns=["src", "dst", "eb"])
+        return pd.DataFrame(
+            zip(srclist, dstlist, eblist, [currentcomp] * compsize),
+            columns=["src", "dst", "eb", "component"],
+        )
 
     out = sparkdf.groupby("component").apply(ebdf)
     return out
