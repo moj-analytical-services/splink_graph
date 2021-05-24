@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "splink_graph"
-version = "0.3.8"
+version = "0.3.9"
 description = "a small set of graph functions to be used from pySpark on top of networkx and graphframes"
 authors = ["Theodore Manassis <theodore.manassis@digital.justice.gov.uk>"]
 keywords = ["graph theory", "graph metrics"]
@@ -14,7 +14,7 @@ include = [
 [tool.poetry.dependencies]
 python = "^3.7"
 pyspark = "2.4.5"
-networkx = "^2.4"
+networkx = "^2.5.1"
 numpy = "1.19.5"
 [tool.poetry.dev-dependencies]
 [build-system]

@@ -18,6 +18,7 @@ from networkx.algorithms.centrality import (
     eigenvector_centrality,
     harmonic_centrality,
 )
+from networkx.algorithms.graph_hashing import weisfeiler_lehman_graph_hash
 import os
 import pandas as pd
 import numpy as np
@@ -319,6 +320,7 @@ def diameter_radius_transitivity(sparkdf):
                 StructField("diameter", IntegerType()),
                 StructField("radius", IntegerType()),
                 StructField("transitivity", FloatType()),
+                StructField("graphhash", StringType()),
             ]
         ),
         functionType=PandasUDFType.GROUPED_MAP,
@@ -330,12 +332,13 @@ def diameter_radius_transitivity(sparkdf):
         d = diameter(nxGraph)
         r = radius(nxGraph)
         t = transitivity(nxGraph)
+        h = weisfeiler_lehman_graph_hash(nxGraph)
 
-        gr = pdf["component"].iloc[0]  # access component id
+        co = pdf["component"].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[gr] + [d] + [r] + [t]],
-            columns=["component", "diameter", "radius", "transitivity"],
+            [[co] + [d] + [r] + [t] + [h]],
+            columns=["component", "diameter", "radius", "transitivity", "graphhash"],
         )
 
     out = sparkdf.groupby("component").apply(drt)
