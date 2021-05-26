@@ -6,21 +6,18 @@ from pyspark.sql.types import *
 import pyspark.sql.functions as f
 from pyspark.sql.functions import when
 import networkx as nx
-from pyspark.sql.types import LongType,StringType,FloatType,DoubleType
+from pyspark.sql.types import LongType, StringType, FloatType, DoubleType
 from networkx import *
+
 
 def _graphharmoniser(df, colsrc, coldst):
     df = df.withColumn(
         "newsrc",
-        when(f.col(colsrc) < f.col(coldst), f.col(colsrc)).otherwise(
-            f.col(coldst)
-        ),
+        when(f.col(colsrc) < f.col(coldst), f.col(colsrc)).otherwise(f.col(coldst)),
     )
     df = df.withColumn(
         "newdst",
-        when(f.col(coldst) > f.col(colsrc), f.col(coldst)).otherwise(
-            f.col(colsrc)
-        ),
+        when(f.col(coldst) > f.col(colsrc), f.col(coldst)).otherwise(f.col(colsrc)),
     )
     df = (
         df.drop(colsrc)
@@ -37,15 +34,13 @@ def nodes_from_edge_df(df, src="src", dst="dst", component="component"):
     out = df.groupby(component).agg(
         f.collect_set(src).alias("_1"), f.collect_list(dst).alias("_2")
     )
-    out = out.withColumn(
-        "nodes", f.array_union(f.col("_1"), f.col("_2"))
-    ).drop("_1", "_2")
+    out = out.withColumn("nodes", f.array_union(f.col("_1"), f.col("_2"))).drop(
+        "_1", "_2"
+    )
     return out
 
 
-def subgraph_stats(
-    df, component="component", weight="weight", src="src", dst="dst"
-):
+def subgraph_stats(df, component="component", weight="weight", src="src", dst="dst"):
 
     """
     
@@ -93,11 +88,10 @@ output spark dataframe:
     # density related calcs based on nodecount and max possible number of edges in an undirected graph
 
     output = output.withColumn(
-        "maxNumberOfEdgesundir",
-        f.col("nodecount") * (f.col("nodecount") - 1.0) / 2.0,
+        "maxNumberOfEdgesundir", f.col("nodecount") * (f.col("nodecount") - 1.0) / 2.0,
     )
     output = output.withColumn(
-        "density", (f.col("edgecount") / f.col("maxNumberOfEdgesundir"))
+        "density", f.round(f.col("edgecount") / f.col("maxNumberOfEdgesundir"), 3)
     ).drop("sources", "destinations", "maxNumberOfEdgesundir")
 
     return output
