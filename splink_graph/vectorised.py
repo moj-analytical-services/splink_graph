@@ -303,12 +303,7 @@ def diameter_radius_transitivity(sparkdf):
 
     output spark dataframe:
 
-+----------+--------+------+
-| component|diameter|radius|
-+----------+--------+------+
-|8589934592|       2|     1|
-|         0|       4|     2|
-+----------+--------+------+
+
 
 
     """
@@ -320,6 +315,8 @@ def diameter_radius_transitivity(sparkdf):
                 StructField("diameter", IntegerType()),
                 StructField("radius", IntegerType()),
                 StructField("transitivity", FloatType()),
+                StructField("tri_clustcoeff", FloatType()),
+                StructField("sq_clustcoeff", FloatType()),
                 StructField("graphhash", StringType()),
             ]
         ),
@@ -332,14 +329,30 @@ def diameter_radius_transitivity(sparkdf):
         d = diameter(nxGraph)
         r = radius(nxGraph)
         t = transitivity(nxGraph)
+        tric = nx.average_clustering(nxGraph)
+        sq = nx.square_clustering(nxGraph)
+        sqc = sum(sq.values()) / len(sq.values())
         h = weisfeiler_lehman_graph_hash(nxGraph)
 
         co = pdf["component"].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[co] + [d] + [r] + [t] + [h]],
-            columns=["component", "diameter", "radius", "transitivity", "graphhash"],
+            [[co] + [d] + [r] + [t] + [tric] + [sqc] + [h]],
+            columns=[
+                "component",
+                "diameter",
+                "radius",
+                "transitivity",
+                "tri_clustcoeff",
+                "sq_clustcoeff",
+                "graphhash",
+            ],
         )
 
     out = sparkdf.groupby("component").apply(drt)
+    out = (
+        out.withColumn("tri_clustcoeff", f.round(f.col("tri_clustcoeff"), 3))
+        .withColumn("sq_clustcoeff", f.round(f.col("sq_clustcoeff"), 3))
+        .withColumn("transitivity", f.round(f.col("transitivity"), 3))
+    )
     return out
