@@ -38,7 +38,7 @@ eboutSchema = StructType(
 )
 
 
-def edgebetweeness(sparkdf):
+def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance"):
     from pyspark.context import SparkContext, SparkConf
     from pyspark.sql import SparkSession
 
@@ -47,17 +47,18 @@ def edgebetweeness(sparkdf):
     conf.set("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
     sc = SparkContext.getOrCreate(conf=conf)
 
+    psrc = src
+    pdst = dst
+    pdistance = distance
+
     @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
     def ebdf(pdf):
-        src = "src"
-        dst = "dst"
-        distance = "distance"
 
         srclist = []
         dstlist = []
         eblist = []
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, src, dst, distance)
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=distance)
         currentcomp = pdf["component"].iloc[0]  # access current component
         compsize = pdf["component"].size  # how many nodes does this cluster have?
@@ -79,7 +80,7 @@ def edgebetweeness(sparkdf):
     return out
 
 
-def bridgesgroupedmap(sparkdf):
+def bridgesgroupedmap(sparkdf, src="src", dst="dst", distance="distance"):
 
     """
 
@@ -113,6 +114,9 @@ output spark dataframe:
 
 
     """
+    psrc = src
+    pdst = dst
+    pdistance = distance
 
     bridgesoutSchema = StructType(
         [
@@ -128,7 +132,7 @@ output spark dataframe:
     def br_p_udf(pdf):
 
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
 
         b = bridges(nxGraph)
         bpdf = pd.DataFrame(b, columns=["src", "dst",])
@@ -139,7 +143,7 @@ output spark dataframe:
     return out
 
 
-def eigencentrality(sparkdf):
+def eigencentrality(sparkdf, src="src", dst="dst", distance="distance"):
 
     """
     
@@ -196,10 +200,14 @@ output spark dataframe:
         ]
     )
 
+    psrc = src
+    pdst = dst
+    pdistance = distance
+
     @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
     def eigenc(pdf):
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         ec = eigenvector_centrality(nxGraph)
         return (
             pd.DataFrame.from_dict(ec, orient="index", columns=["eigen_centrality"])
@@ -211,7 +219,7 @@ output spark dataframe:
     return out
 
 
-def harmoniccentrality(sparkdf):
+def harmoniccentrality(sparkdf, src="src", dst="dst", distance="distance"):
 
     """
 
@@ -264,10 +272,14 @@ output spark dataframe:
         ]
     )
 
+    psrc = src
+    pdst = dst
+    pdistance = distance
+
     @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
     def harmc(pdf):
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst", "distance")
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         hc = harmonic_centrality(nxGraph)
         return (
             pd.DataFrame.from_dict(hc, orient="index", columns=["harmonic_centrality"])
@@ -281,7 +293,7 @@ output spark dataframe:
     return out
 
 
-def diameter_radius_transitivity(sparkdf):
+def diameter_radius_transitivity(sparkdf, src="src", dst="dst"):
     """    
 
     input spark dataframe:
@@ -308,6 +320,9 @@ def diameter_radius_transitivity(sparkdf):
 
     """
 
+    psrc = src
+    pdst = dst
+
     @pandas_udf(
         StructType(
             [
@@ -325,7 +340,7 @@ def diameter_radius_transitivity(sparkdf):
     def drt(pdf):
 
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, "src", "dst")
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         d = diameter(nxGraph)
         r = radius(nxGraph)
         t = transitivity(nxGraph)
