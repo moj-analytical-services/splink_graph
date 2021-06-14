@@ -4,11 +4,13 @@ from splink_graph.vectorised import (
     edgebetweeness,
     eigencentrality,
     harmoniccentrality,
+    bridge_edges
 )
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import pyspark.sql.functions as f
+import json
 
 
 def test_diameter_radius_transitivity(spark):
@@ -55,6 +57,24 @@ def test_diameter_radius_transitivity_customcolname(spark):
     assert df_result["diameter"][0] == 2
     assert df_result["diameter"][1] == 2
 
+    
+def test_diameter_radius_transitivity_customcolname2(spark):
+    # Create an Edge DataFrame with "id_l" and "id_r" columns
+    data_list = [
+        {"id_l": "a", "id_r": "b", "distance": 0.4, "estimated_id": 1},
+        {"id_l": "b", "id_r": "c", "distance": 0.56, "estimated_id": 1},
+        {"id_l": "d", "id_r": "e", "distance": 0.2, "estimated_id": 2},
+        {"id_l": "f", "id_r": "e", "distance": 0.8, "estimated_id": 2},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    e_df = e_df.withColumn("weight", 1.0 - f.col("distance"))
+
+    df_result = diameter_radius_transitivity(e_df, src="id_l", dst="id_r",component="estimated_id").toPandas()
+
+    assert df_result["diameter"][0] == 2
+    assert df_result["diameter"][1] == 2    
+    
 
 def test_edgebetweeness_samecomponentsinout(spark):
     data_list = [
@@ -108,6 +128,20 @@ def test_edgebetweeness_simple_customcolname(spark):
 
     assert df_result["eb"].values == pytest.approx(0.666667, 0.1)
 
+def test_edgebetweeness_simple_customcolname2(spark):
+    data_list = [
+        {"id_l": "a", "id_r": "b", "distance": 0.4, "estimated_id": 1},
+        {"id_l": "b", "id_r": "c", "distance": 0.56, "estimated_id": 1},
+        {"id_l": "d", "id_r": "e", "distance": 0.2, "estimated_id": 2},
+        {"id_l": "f", "id_r": "e", "distance": 0.8, "estimated_id": 2},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    e_df = e_df.withColumn("weight", 1.0 - f.col("distance"))
+
+    df_result = edgebetweeness(e_df, src="id_l", dst="id_r",component="estimated_id").toPandas()
+
+    assert df_result["eb"].values == pytest.approx(0.666667, 0.1)
 
 def test_eigencentrality_simple(spark):
     data_list = [
@@ -159,7 +193,7 @@ def test_harmoniccentrality_simple(spark):
     assert df_result["harmonic_centrality"][4] == pytest.approx(2.0, 0.1)
 
 
-def test_harmoniccentrality_customcolname(spark, src="id_l", dst="id_r"):
+def test_harmoniccentrality_customcolname(spark):
     data_list = [
         {"id_l": "a", "id_r": "b", "distance": 0.4, "component": 1},
         {"id_l": "b", "id_r": "c", "distance": 0.56, "component": 1},
@@ -174,3 +208,27 @@ def test_harmoniccentrality_customcolname(spark, src="id_l", dst="id_r"):
 
     assert df_result["harmonic_centrality"][0] == pytest.approx(1.50, 0.1)
     assert df_result["harmonic_centrality"][4] == pytest.approx(2.0, 0.1)
+
+
+def test_bridges(spark):
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame([
+    ("a", "b", 0.4,1),
+    ("b", "c", 0.56,1),
+  
+    ("d", "e", 0.84,2),
+    ("e", "f", 0.65,2),
+    ("f", "d", 0.67,2),
+    ("f", "g", 0.34,2),
+    ("g", "h", 0.99,2),
+    ("h", "i", 0.5,2),
+    ("h", "j", 0.8,2),]
+    
+    , ["src", "dst", "weight","component"])
+
+    e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
+    
+    
+    assert bridge_edges(e2_df).toPandas()["src"].count()==6
+    assert bridge_edges(e2_df).toPandas()["weight"].sum()==3.59
