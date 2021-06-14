@@ -38,7 +38,7 @@ eboutSchema = StructType(
 )
 
 
-def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance"):
+def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance",component="component"):
     from pyspark.context import SparkContext, SparkConf
     from pyspark.sql import SparkSession
 
@@ -60,8 +60,8 @@ def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance"):
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=distance)
-        currentcomp = pdf["component"].iloc[0]  # access current component
-        compsize = pdf["component"].size  # how many nodes does this cluster have?
+        currentcomp = pdf[component].iloc[0]  # access current component
+        compsize = pdf[component].size  # how many nodes does this cluster have?
 
         for srcdst, v in eb.items():
             # unpack (src,dst) tuple key
@@ -76,11 +76,11 @@ def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance"):
             columns=["src", "dst", "eb", "component"],
         )
 
-    out = sparkdf.groupby("component").apply(ebdf)
+    out = sparkdf.groupby(component).apply(ebdf)
     return out
 
 
-def bridgesgroupedmap(sparkdf, src="src", dst="dst", distance="distance"):
+def bridge_edges(sparkdf, src="src", dst="dst", distance="distance",component="component"):
 
     """
 
@@ -139,11 +139,11 @@ output spark dataframe:
 
         return pd.merge(bpdf, pdf, how="inner", on=["src", "dst"])
 
-    out = sparkdf.groupby("component").apply(br_p_udf)
+    out = sparkdf.groupby(component).apply(br_p_udf)
     return out
 
 
-def eigencentrality(sparkdf, src="src", dst="dst", distance="distance"):
+def eigencentrality(sparkdf, src="src", dst="dst", distance="distance",component="component"):
 
     """
     
@@ -215,11 +215,11 @@ output spark dataframe:
             .rename(columns={"index": "node", "eigen_centrality": "eigen_centrality"})
         )
 
-    out = sparkdf.groupby("component").apply(eigenc)
+    out = sparkdf.groupby(component).apply(eigenc)
     return out
 
 
-def harmoniccentrality(sparkdf, src="src", dst="dst", distance="distance"):
+def harmoniccentrality(sparkdf, src="src", dst="dst", distance="distance",component="component"):
 
     """
 
@@ -289,11 +289,11 @@ output spark dataframe:
             )
         )
 
-    out = sparkdf.groupby("component").apply(harmc)
+    out = sparkdf.groupby(component).apply(harmc)
     return out
 
 
-def diameter_radius_transitivity(sparkdf, src="src", dst="dst"):
+def diameter_radius_transitivity(sparkdf, src="src", dst="dst",component="component"):
     """    
 
     input spark dataframe:
@@ -349,7 +349,7 @@ def diameter_radius_transitivity(sparkdf, src="src", dst="dst"):
         sqc = sum(sq.values()) / len(sq.values())
         h = weisfeiler_lehman_graph_hash(nxGraph)
 
-        co = pdf["component"].iloc[0]  # access component id
+        co = pdf[component].iloc[0]  # access component id
 
         return pd.DataFrame(
             [[co] + [d] + [r] + [t] + [tric] + [sqc] + [h]],
