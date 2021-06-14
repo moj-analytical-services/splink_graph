@@ -364,7 +364,7 @@ def diameter_radius_transitivity(sparkdf, src="src", dst="dst",component="compon
             ],
         )
 
-    out = sparkdf.groupby("component").apply(drt)
+    out = sparkdf.groupby(component).apply(drt)
     out = (
         out.withColumn("tri_clustcoeff", f.round(f.col("tri_clustcoeff"), 3))
         .withColumn("sq_clustcoeff", f.round(f.col("sq_clustcoeff"), 3))
