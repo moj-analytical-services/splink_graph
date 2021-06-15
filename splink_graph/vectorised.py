@@ -80,7 +80,7 @@ def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance",component=
     return out
 
 
-def bridge_edges(sparkdf, src="src", dst="dst", distance="distance",component="component"):
+def bridge_edges(sparkdf, src="src", dst="dst", weight="weight",distance="distance",component="component"):
 
     """
 
@@ -116,15 +116,17 @@ output spark dataframe:
     """
     psrc = src
     pdst = dst
+    pweight=weight
     pdistance = distance
+    pcomponent=component
 
     bridgesoutSchema = StructType(
         [
-            StructField("src", StringType()),
-            StructField("dst", StringType()),
-            StructField("weight", DoubleType()),
-            StructField("component", LongType()),
-            StructField("distance", DoubleType()),
+            StructField(psrc, StringType()),
+            StructField(pdst, StringType()),
+            StructField(pweight, DoubleType()),
+            StructField(pcomponent, LongType()),
+            StructField(pdistance, DoubleType()),
         ]
     )
 
@@ -135,9 +137,9 @@ output spark dataframe:
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
 
         b = bridges(nxGraph)
-        bpdf = pd.DataFrame(b, columns=["src", "dst",])
+        bpdf = pd.DataFrame(b, columns=[psrc, pdst])
 
-        return pd.merge(bpdf, pdf, how="inner", on=["src", "dst"])
+        return pd.merge(bpdf, pdf, how="inner", on=[psrc, pdst])
 
     out = sparkdf.groupby(component).apply(br_p_udf)
     return out
