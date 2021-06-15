@@ -255,3 +255,26 @@ def test_bridges_customcolname(spark):
     
     assert bridge_edges(e2_df,src="id_l",dst="id_r",component="estimated_group").toPandas()["id_l"].count()==6
     
+def test_bridges_customcolname2(spark):
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame([
+    ("a", "b", 0.4,1,"lol"),
+    ("b", "c", 0.56,1,"lol"),
+  
+    ("d", "e", 0.84,2,"lol"),
+    ("e", "f", 0.65,2,"lol"),
+    ("f", "d", 0.67,2,"lol"),
+    ("f", "g", 0.34,2,"lol"),
+    ("g", "h", 0.99,2,"lol"),
+    ("h", "i", 0.5,2,"lol"),
+    ("h", "j", 0.8,2,"lol"),]
+    
+    , ["id_l", "id_r", "weight","estimated_group","lol"])
+
+    e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
+    
+    
+    assert bridge_edges(e2_df,src="id_l",dst="id_r",component="estimated_group").toPandas()["id_l"].count()==6
+    
+    
