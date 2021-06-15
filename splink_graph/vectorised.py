@@ -141,6 +141,7 @@ output spark dataframe:
 
         return pd.merge(bpdf, pdf, how="inner", on=[psrc, pdst])
 
+    indf = sparkdf.select(psrc, pdst,pweight,pdistance,pcomponent)
     out = sparkdf.groupby(component).apply(br_p_udf)
     return out
 
