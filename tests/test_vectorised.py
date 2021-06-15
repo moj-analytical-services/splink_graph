@@ -232,3 +232,26 @@ def test_bridges(spark):
     
     assert bridge_edges(e2_df).toPandas()["src"].count()==6
     assert bridge_edges(e2_df).toPandas()["weight"].sum()==3.59
+    
+def test_bridges_customcolname(spark):
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame([
+    ("a", "b", 0.4,1),
+    ("b", "c", 0.56,1),
+  
+    ("d", "e", 0.84,2),
+    ("e", "f", 0.65,2),
+    ("f", "d", 0.67,2),
+    ("f", "g", 0.34,2),
+    ("g", "h", 0.99,2),
+    ("h", "i", 0.5,2),
+    ("h", "j", 0.8,2),]
+    
+    , ["id_l", "id_r", "weight","estimated_group"])
+
+    e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
+    
+    
+    assert bridge_edges(e2_df,src="id_l",dst="id_r",component="estimated_group").toPandas()["id_l"].count()==6
+    
