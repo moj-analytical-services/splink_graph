@@ -1,3 +1,4 @@
+import pyspark
 from pyspark.sql.types import (
     LongType,
     StringType,
