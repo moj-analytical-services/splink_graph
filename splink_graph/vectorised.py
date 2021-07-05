@@ -1,3 +1,4 @@
+import pyspark
 from pyspark.sql.types import (
     LongType,
     StringType,
@@ -26,7 +27,7 @@ import numpy as np
 # setup to work around with pandas udf
 # see answers on
 # https://stackoverflow.com/questions/58458415/pandas-scalar-udf-failing-illegalargumentexception
-os.environ["ARROW_PRE_0_15_IPC_FORMAT"] = "1"
+
 
 eboutSchema = StructType(
     [
@@ -44,7 +45,10 @@ def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance",component=
 
     conf = SparkConf()
     conf.set("spark.sql.execution.arrow.enabled", "true")
-    conf.set("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
+    if (pyspark.__version__).startswith("2"):
+        conf.set("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
+        os.environ["ARROW_PRE_0_15_IPC_FORMAT"] = "1"
+    
     sc = SparkContext.getOrCreate(conf=conf)
 
     psrc = src
