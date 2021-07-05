@@ -40,16 +40,6 @@ eboutSchema = StructType(
 
 
 def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance",component="component"):
-    from pyspark.context import SparkContext, SparkConf
-    from pyspark.sql import SparkSession
-
-    conf = SparkConf()
-    conf.set("spark.sql.execution.arrow.enabled", "true")
-    if (pyspark.__version__).startswith("2"):
-        conf.set("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
-        os.environ["ARROW_PRE_0_15_IPC_FORMAT"] = "1"
-    
-    sc = SparkContext.getOrCreate(conf=conf)
 
     psrc = src
     pdst = dst
