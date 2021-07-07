@@ -11,6 +11,7 @@ from pyspark.sql.types import (
 import pyspark.sql.functions as f
 from pyspark.sql.functions import pandas_udf, PandasUDFType
 import networkx as nx
+import networkx.algorithms.community as nx_comm
 from networkx.algorithms.distance_measures import diameter, radius
 from networkx.algorithms.cluster import transitivity
 from networkx.algorithms.centrality import edge_betweenness_centrality
@@ -19,6 +20,8 @@ from networkx.algorithms.centrality import (
     eigenvector_centrality,
     harmonic_centrality,
 )
+
+from networkx.algorithms.community.centrality import girvan_newman
 from networkx.algorithms.graph_hashing import weisfeiler_lehman_graph_hash
 import os
 import pandas as pd
@@ -424,9 +427,9 @@ def connectivity_eff(sparkdf, src="src", dst="dst", distance="distance",componen
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst,pdistance)
    
-        nc = nx.algorithms.node_connectivity(graph)
-        ec = nx.algorithms.edge_connectivity(graph)
-        ge = round(nx.global_efficiency(graph), 3)
+        nc = nx.algorithms.node_connectivity(nxGraph)
+        ec = nx.algorithms.edge_connectivity(nxGraph)
+        ge = round(nx.global_efficiency(nxGraph), 3)
 
         co = pdf[component].iloc[0]  # access component id
 
@@ -444,3 +447,69 @@ def connectivity_eff(sparkdf, src="src", dst="dst", distance="distance",componen
 
     return out
 
+def component_modularity(sparkdf, src="src", dst="dst", distance="distance",component="component"):
+    """    
+
+    
+
+    input spark dataframe:
+
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
+
+
+    output spark dataframe:
+
+    """
+
+    psrc = src
+    pdst = dst
+    pdistance = distance
+
+    @pandas_udf(
+        StructType(
+            [
+                StructField("component", LongType()),
+                StructField("comp_eb_modularity", FloatType()),
+            ]
+        ),
+        functionType=PandasUDFType.GROUPED_MAP,
+    )
+    def comp_eb_modularity(pdf):
+
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst,pdistance)
+        
+        
+        def most_central_edge(G):
+            centrality = edge_betweenness_centrality(G, weight=pdistance)
+            return max(centrality, key=centrality.get)
+
+        comp = girvan_newman(nxGraph, most_valuable_edge=most_central_edge)
+        gn = tuple(sorted(c) for c in next(comp))
+
+        co = pdf[component].iloc[0]  # access component id
+        co_eb_mod= nx_comm.modularity(nxGraph, gn)
+
+        return pd.DataFrame(
+            [[co] + [co_eb_mod]],
+            columns=[
+                "component",
+                "comp_eb_modularity",
+            ],
+        )
+
+    out = sparkdf.groupby(component).apply(comp_eb_modularity)
+
+    return out
