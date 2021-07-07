@@ -53,7 +53,7 @@ def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance",component=
         eblist = []
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
-        eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=distance)
+        eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=pdistance)
         currentcomp = pdf[component].iloc[0]  # access current component
         compsize = pdf[component].size  # how many nodes does this cluster have?
 
@@ -368,3 +368,79 @@ def diameter_radius_transitivity(sparkdf, src="src", dst="dst",component="compon
         .withColumn("transitivity", f.round(f.col("transitivity"), 3))
     )
     return out
+
+def connectivity_eff(sparkdf, src="src", dst="dst", distance="distance",component="component"):
+    """    
+    Measures the minimal number of vertices that can be removed to disconnect the graph.
+    Larger vertex (node) connectivity --> harder to disconnect graph
+    
+    Measures the minimal number of edges that can be removed to disconnect the graph.
+    Larger edge connectivity --> harder to disconnect graph
+    
+    The global efficiency of a graph is the average inverse distance between all pairs of nodes in the graph.
+    The larger the average inverse shortest path distance, the more robust the graph.
+    This can be viewed through the lens of network connectivity i.e., larger average inverse distance
+    --> better connected graph --> more robust graph
+    
+
+    input spark dataframe:
+
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
+
+
+    output spark dataframe:
+
+    """
+
+    psrc = src
+    pdst = dst
+    pdistance = distance
+
+    @pandas_udf(
+        StructType(
+            [
+                StructField("component", LongType()),
+                StructField("node_conn", IntegerType()),
+                StructField("edge_conn", IntegerType()),
+                StructField("global_efficiency", FloatType()),
+            ]
+        ),
+        functionType=PandasUDFType.GROUPED_MAP,
+    )
+    def conn_eff(pdf):
+
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst,pdistance)
+   
+        nc = nx.algorithms.node_connectivity(graph)
+        ec = nx.algorithms.edge_connectivity(graph)
+        ge = round(nx.global_efficiency(graph), 3)
+
+        co = pdf[component].iloc[0]  # access component id
+
+        return pd.DataFrame(
+            [[co] + [nc] + [ec] + [ge]],
+            columns=[
+                "component",
+                "node_conn",
+                "edge_conn", 
+                "global_efficiency"
+            ],
+        )
+
+    out = sparkdf.groupby(component).apply(conn_eff)
+
+    return out
+
