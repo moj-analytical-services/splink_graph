@@ -491,6 +491,7 @@ def component_modularity(sparkdf, src="src", dst="dst", distance="distance",comp
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst,pdistance)
         
+        ## TODO: comments! to document this code
         
         def most_central_edge(G):
             centrality = edge_betweenness_centrality(G, weight=pdistance)

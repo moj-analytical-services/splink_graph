@@ -1,6 +1,8 @@
 import networkx as nx
 from networkx import *
 from networkx.algorithms import *
+from scipy import sparse
+import numpy as np
 
 
 def _nx_compute_all_pairs_shortest_path(nxgraph, weight=None, normalize=False):
