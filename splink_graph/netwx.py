@@ -33,3 +33,39 @@ def _nx_longest_shortest_path(lengths):
 
     max_length = max([max(lengths[i].values()) for i in lengths])
     return max_length
+
+
+def _laplacian_matrix(nxgraph):
+    """
+
+    Takes as input :
+            undirected NetworkX graph
+            
+    A: Adjacency Matrix
+    D: Diagonal Matrix
+    L: Laplacian Matrix
+            
+     Returns:
+            Scipy sparse format Laplacian matrix
+    """
+    A = nx.to_scipy_sparse_matrix(
+        nxgraph, format="csr", dtype=np.float, nodelist=graph.nodes
+    )
+    D = sparse.spdiags(
+        data=A.sum(axis=1).flatten(),
+        diags=[0],
+        m=len(nxgraph),
+        n=len(nxgraph),
+        format="csr",
+    )
+    L = D - A
+
+    return L
+
+
+def _laplacian_spectrum(nxgraph):
+
+    la_spectrum = nx.laplacian_spectrum(nxgraph)
+    la_spectrum = np.sort(la_spectrum)  # sort ascending
+
+    return la_spectrum
