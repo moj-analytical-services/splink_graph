@@ -20,7 +20,6 @@ from networkx.algorithms.centrality import (
     eigenvector_centrality,
     harmonic_centrality,
 )
-
 from networkx.algorithms.community.centrality import girvan_newman
 from networkx.algorithms.graph_hashing import weisfeiler_lehman_graph_hash
 import os
@@ -42,7 +41,9 @@ eboutSchema = StructType(
 )
 
 
-def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance",component="component"):
+def edgebetweeness(
+    sparkdf, src="src", dst="dst", distance="distance", component="component"
+):
 
     psrc = src
     pdst = dst
@@ -66,7 +67,7 @@ def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance",component=
 
             srclist.append(src)
             dstlist.append(dst)
-            eblist.append(v)
+            eblist.append(round(v, 3))
 
         return pd.DataFrame(
             zip(srclist, dstlist, eblist, [currentcomp] * compsize),
@@ -77,7 +78,14 @@ def edgebetweeness(sparkdf, src="src", dst="dst", distance="distance",component=
     return out
 
 
-def bridge_edges(sparkdf, src="src", dst="dst", weight="weight",distance="distance",component="component"):
+def bridge_edges(
+    sparkdf,
+    src="src",
+    dst="dst",
+    weight="weight",
+    distance="distance",
+    component="component",
+):
 
     """
 
@@ -113,9 +121,9 @@ output spark dataframe:
     """
     psrc = src
     pdst = dst
-    pweight=weight
+    pweight = weight
     pdistance = distance
-    pcomponent=component
+    pcomponent = component
 
     bridgesoutSchema = StructType(
         [
@@ -138,12 +146,14 @@ output spark dataframe:
 
         return pd.merge(bpdf, pdf, how="inner", on=[psrc, pdst])
 
-    indf = sparkdf.select(psrc, pdst,pweight,pdistance,pcomponent)
+    indf = sparkdf.select(psrc, pdst, pweight, pdistance, pcomponent)
     out = indf.groupby(component).apply(br_p_udf)
     return out
 
 
-def eigencentrality(sparkdf, src="src", dst="dst", distance="distance",component="component"):
+def eigencentrality(
+    sparkdf, src="src", dst="dst", distance="distance", component="component"
+):
 
     """
     
@@ -219,7 +229,9 @@ output spark dataframe:
     return out
 
 
-def harmoniccentrality(sparkdf, src="src", dst="dst", distance="distance",component="component"):
+def harmoniccentrality(
+    sparkdf, src="src", dst="dst", distance="distance", component="component"
+):
 
     """
 
@@ -293,7 +305,7 @@ output spark dataframe:
     return out
 
 
-def diameter_radius_transitivity(sparkdf, src="src", dst="dst",component="component"):
+def diameter_radius_transitivity(sparkdf, src="src", dst="dst", component="component"):
     """    
 
     input spark dataframe:
@@ -372,7 +384,10 @@ def diameter_radius_transitivity(sparkdf, src="src", dst="dst",component="compon
     )
     return out
 
-def connectivity_eff(sparkdf, src="src", dst="dst", distance="distance",component="component"):
+
+def cluster_connectivity(
+    sparkdf, src="src", dst="dst", distance="distance", component="component"
+):
     """    
     Measures the minimal number of vertices that can be removed to disconnect the graph.
     Larger vertex (node) connectivity --> harder to disconnect graph
@@ -425,8 +440,8 @@ def connectivity_eff(sparkdf, src="src", dst="dst", distance="distance",componen
     def conn_eff(pdf):
 
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst,pdistance)
-   
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+
         nc = nx.algorithms.node_connectivity(nxGraph)
         ec = nx.algorithms.edge_connectivity(nxGraph)
         ge = round(nx.global_efficiency(nxGraph), 3)
@@ -435,23 +450,18 @@ def connectivity_eff(sparkdf, src="src", dst="dst", distance="distance",componen
 
         return pd.DataFrame(
             [[co] + [nc] + [ec] + [ge]],
-            columns=[
-                "component",
-                "node_conn",
-                "edge_conn", 
-                "global_efficiency"
-            ],
+            columns=["component", "node_conn", "edge_conn", "global_efficiency"],
         )
 
     out = sparkdf.groupby(component).apply(conn_eff)
 
     return out
 
-def component_modularity(sparkdf, src="src", dst="dst", distance="distance",component="component"):
+
+def cluster_modularity(
+    sparkdf, src="src", dst="dst", distance="distance", component="component"
+):
     """    
-
-    
-
     input spark dataframe:
 
 ---+---+------+----------+---------------------+
@@ -486,30 +496,91 @@ def component_modularity(sparkdf, src="src", dst="dst", distance="distance",comp
         ),
         functionType=PandasUDFType.GROUPED_MAP,
     )
-    def comp_eb_modularity(pdf):
+    def cluster_eb_modularity(pdf):
 
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst,pdistance)
-        
-        
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+
+        ## TODO: comments! to document this code
+
         def most_central_edge(G):
-            centrality = edge_betweenness_centrality(G, weight=pdistance)
+            centrality = edge_betweenness_centrality(
+                G, weight=pdistance, normalized=True
+            )
             return max(centrality, key=centrality.get)
 
         comp = girvan_newman(nxGraph, most_valuable_edge=most_central_edge)
         gn = tuple(sorted(c) for c in next(comp))
 
         co = pdf[component].iloc[0]  # access component id
-        co_eb_mod= nx_comm.modularity(nxGraph, gn)
+        co_eb_mod = nx_comm.modularity(nxGraph, gn)
 
         return pd.DataFrame(
-            [[co] + [co_eb_mod]],
-            columns=[
-                "component",
-                "comp_eb_modularity",
-            ],
+            [[co] + [co_eb_mod]], columns=["component", "cluster_eb_modularity",],
         )
 
-    out = sparkdf.groupby(component).apply(comp_eb_modularity)
+    out = sparkdf.groupby(component).apply(cluster_eb_modularity)
+
+    return out
+
+
+def avg_cluster_edge_betweenness(
+    sparkdf, src="src", dst="dst", distance="distance", component="component"
+):
+    """    
+    
+
+    input spark dataframe:
+
+---+---+------+----------+---------------------+
+|src|dst|weight| component|            distance|
++---+---+------+----------+--------------------+
+|  f|  d|  0.67|         0| 0.32999999999999996|
+|  f|  g|  0.34|         0|  0.6599999999999999|
+|  b|  c|  0.56|8589934592| 0.43999999999999995|
+|  g|  h|  0.99|         0|0.010000000000000009|
+|  a|  b|   0.4|8589934592|                 0.6|
+|  h|  i|   0.5|         0|                 0.5|
+|  h|  j|   0.8|         0| 0.19999999999999996|
+|  d|  e|  0.84|         0| 0.16000000000000003|
+|  e|  f|  0.65|         0|                0.35|
++---+---+------+----------+--------------------+
+
+
+    output spark dataframe:
+
+    """
+
+    psrc = src
+    pdst = dst
+    pdistance = distance
+
+    @pandas_udf(
+        StructType(
+            [
+                StructField("component", LongType()),
+                StructField("avg_cluster_eb", FloatType()),
+            ]
+        ),
+        functionType=PandasUDFType.GROUPED_MAP,
+    )
+    def avg_eb(pdf):
+
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+        edge_btwn = edge_betweenness_centrality(
+            nxGraph, k=min(len(nxGraph), np.inf), normalized=True
+        )
+
+        if len(edge_btwn) > 0:
+            aeb = round(sum(list(edge_btwn.values())) / len(edge_btwn), 3)
+        else:
+            aeb = 0.0
+
+        co = pdf[component].iloc[0]  # access component id
+
+        return pd.DataFrame([[co] + [aeb]], columns=["component", "avg_cluster_eb",],)
+
+    out = sparkdf.groupby(component).apply(avg_eb)
 
     return out
