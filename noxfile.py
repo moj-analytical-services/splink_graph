@@ -10,7 +10,7 @@ def tests(session,pandas, pyspark):
     if pyspark=="2.4.5":
         session.install('pyarrow==0.14.1')
     else:
-        session.install('pyarrow==0.15.1')
+        session.install('pyarrow==2.0.0')
     session.install("networkx==2.5.1")
     session.install(f"pyspark=={pyspark}")
     session.run("pytest", "-v","-W", "ignore::DeprecationWarning")
