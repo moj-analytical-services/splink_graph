@@ -4,6 +4,7 @@ import nox
 @nox.parametrize("pandas", ["0.25.3", "1.0.1"])
 def tests(session,pandas, pyspark):
     session.run("python", "-m", "pip", "install", "--upgrade", "pip")
+    session.install('cmake')
     session.install('pytest')
     session.install(f"pandas=={pandas}")
     session.install('numpy==1.19.5', "--no-deps")
