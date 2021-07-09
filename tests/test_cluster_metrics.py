@@ -9,7 +9,7 @@ import pyspark.sql.functions as f
 import json
 
 
-def test_diameter_radius_transitivity(spark):
+def test_diameter_transitivity(spark):
     # Create an Edge DataFrame with "src" and "dst" columns
     data_list = [
         {"src": "a", "dst": "b", "distance": 0.4, "component": 1},
@@ -33,7 +33,7 @@ def test_diameter_radius_transitivity(spark):
     assert df_result["graphhash"][1] == "0f43d8cdd43b0b78727b192b6d6d0d0e"
 
 
-def test_diameter_radius_transitivity_customcolname(spark):
+def test_diameter_transitivity_customcolname(spark):
     # Create an Edge DataFrame with "id_l" and "id_r" columns
     data_list = [
         {"id_l": "a", "id_r": "b", "distance": 0.4, "component": 1},
@@ -51,7 +51,7 @@ def test_diameter_radius_transitivity_customcolname(spark):
     assert df_result["diameter"][1] == 2
 
     
-def test_diameter_radius_transitivity_customcolname2(spark):
+def test_diameter_transitivity_customcolname2(spark):
     # Create an Edge DataFrame with "id_l" and "id_r" columns
     data_list = [
         {"id_l": "a", "id_r": "b", "distance": 0.4, "estimated_id": 1},
@@ -67,6 +67,4 @@ def test_diameter_radius_transitivity_customcolname2(spark):
 
     assert df_result["diameter"][0] == 2
     assert df_result["diameter"][1] == 2    
-    
-  
     
