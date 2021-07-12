@@ -22,18 +22,19 @@ eboutSchema = StructType(
         StructField("src", StringType()),
         StructField("dst", StringType()),
         StructField("eb", FloatType()),
-        StructField("component", LongType()),
+        StructField("cluster_id", LongType()),
     ]
 )
 
 
 def edgebetweeness(
-    sparkdf, src="src", dst="dst", distance="distance", component="component"
+    sparkdf, src="src", dst="dst", distance_col="distance", cluster_id_col="cluster_id"
 ):
 
     psrc = src
     pdst = dst
-    pdistance = distance
+    pdistance = distance_col
+    
 
     @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
     def ebdf(pdf):
@@ -44,8 +45,8 @@ def edgebetweeness(
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=pdistance)
-        currentcomp = pdf[component].iloc[0]  # access current component
-        compsize = pdf[component].size  # how many nodes does this cluster have?
+        currentcomp = pdf[cluster_id_col].iloc[0]  # access current component
+        compsize = pdf[cluster_id_col].size  # how many nodes does this cluster have?
 
         for srcdst, v in eb.items():
             # unpack (src,dst) tuple key
@@ -57,10 +58,10 @@ def edgebetweeness(
 
         return pd.DataFrame(
             zip(srclist, dstlist, eblist, [currentcomp] * compsize),
-            columns=["src", "dst", "eb", "component"],
+            columns=["src", "dst", "eb", "cluster_id"],
         )
 
-    out = sparkdf.groupby(component).apply(ebdf)
+    out = sparkdf.groupby(cluster_id_col).apply(ebdf)
     return out
 
 
@@ -68,9 +69,9 @@ def bridge_edges(
     sparkdf,
     src="src",
     dst="dst",
-    weight="weight",
-    distance="distance",
-    component="component",
+    weight_col="weight",
+    distance_col="distance",
+    cluster_id_col="cluster_id",
 ):
 
     """
@@ -107,9 +108,9 @@ output spark dataframe:
     """
     psrc = src
     pdst = dst
-    pweight = weight
-    pdistance = distance
-    pcomponent = component
+    pweight = weight_col
+    pdistance = distance_col
+    pcomponent = cluster_id_col
 
     bridgesoutSchema = StructType(
         [
@@ -133,5 +134,5 @@ output spark dataframe:
         return pd.merge(bpdf, pdf, how="inner", on=[psrc, pdst])
 
     indf = sparkdf.select(psrc, pdst, pweight, pdistance, pcomponent)
-    out = indf.groupby(component).apply(br_p_udf)
+    out = indf.groupby(cluster_id_col).apply(br_p_udf)
     return out

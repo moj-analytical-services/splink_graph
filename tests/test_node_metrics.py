@@ -12,10 +12,10 @@ import json
 
 def test_eigencentrality_simple(spark):
     data_list = [
-        {"src": "a", "dst": "b", "distance": 0.4, "component": 1},
-        {"src": "b", "dst": "c", "distance": 0.56, "component": 1},
-        {"src": "d", "dst": "e", "distance": 0.2, "component": 2},
-        {"src": "f", "dst": "e", "distance": 0.8, "component": 2},
+        {"src": "a", "dst": "b", "distance": 0.4, "cluster_id": 1},
+        {"src": "b", "dst": "c", "distance": 0.56, "cluster_id": 1},
+        {"src": "d", "dst": "e", "distance": 0.2, "cluster_id": 2},
+        {"src": "f", "dst": "e", "distance": 0.8, "cluster_id": 2},
     ]
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
@@ -29,10 +29,10 @@ def test_eigencentrality_simple(spark):
 def test_eigencentrality_customcolname(spark):
 
     data_list = [
-        {"id_l": "a", "id_r": "b", "distance": 0.4, "component": 1},
-        {"id_l": "b", "id_r": "c", "distance": 0.56, "component": 1},
-        {"id_l": "d", "id_r": "e", "distance": 0.2, "component": 2},
-        {"id_l": "f", "id_r": "e", "distance": 0.8, "component": 2},
+        {"id_l": "a", "id_r": "b", "distance": 0.4, "cluster_id": 1},
+        {"id_l": "b", "id_r": "c", "distance": 0.56, "cluster_id": 1},
+        {"id_l": "d", "id_r": "e", "distance": 0.2, "cluster_id": 2},
+        {"id_l": "f", "id_r": "e", "distance": 0.8, "cluster_id": 2},
     ]
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
@@ -45,10 +45,10 @@ def test_eigencentrality_customcolname(spark):
 
 def test_harmoniccentrality_simple(spark):
     data_list = [
-        {"src": "a", "dst": "b", "distance": 0.4, "component": 1},
-        {"src": "b", "dst": "c", "distance": 0.56, "component": 1},
-        {"src": "d", "dst": "e", "distance": 0.2, "component": 2},
-        {"src": "f", "dst": "e", "distance": 0.8, "component": 2},
+        {"src": "a", "dst": "b", "distance": 0.4, "cluster_id": 1},
+        {"src": "b", "dst": "c", "distance": 0.56, "cluster_id": 1},
+        {"src": "d", "dst": "e", "distance": 0.2, "cluster_id": 2},
+        {"src": "f", "dst": "e", "distance": 0.8, "cluster_id": 2},
     ]
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
@@ -62,10 +62,10 @@ def test_harmoniccentrality_simple(spark):
 
 def test_harmoniccentrality_customcolname(spark):
     data_list = [
-        {"id_l": "a", "id_r": "b", "distance": 0.4, "component": 1},
-        {"id_l": "b", "id_r": "c", "distance": 0.56, "component": 1},
-        {"id_l": "d", "id_r": "e", "distance": 0.2, "component": 2},
-        {"id_l": "f", "id_r": "e", "distance": 0.8, "component": 2},
+        {"id_l": "a", "id_r": "b", "distance": 0.4, "cluster_id": 1},
+        {"id_l": "b", "id_r": "c", "distance": 0.56, "cluster_id": 1},
+        {"id_l": "d", "id_r": "e", "distance": 0.2, "cluster_id": 2},
+        {"id_l": "f", "id_r": "e", "distance": 0.8, "cluster_id": 2},
     ]
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)

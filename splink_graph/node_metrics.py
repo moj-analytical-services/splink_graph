@@ -19,7 +19,7 @@ from networkx.algorithms.centrality import (
 
 
 def eigencentrality(
-    sparkdf, src="src", dst="dst", distance="distance", component="component"
+    sparkdf, src="src", dst="dst", distance_colname="distance", cluster_id_colname="cluster_id"
 ):
 
     """
@@ -72,14 +72,14 @@ output spark dataframe:
     """
     ecschema = StructType(
         [
-            StructField("node", StringType()),
+            StructField("node_id", StringType()),
             StructField("eigen_centrality", DoubleType()),
         ]
     )
 
     psrc = src
     pdst = dst
-    pdistance = distance
+    pdistance = distance_colname
 
     @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
     def eigenc(pdf):
@@ -89,15 +89,15 @@ output spark dataframe:
         return (
             pd.DataFrame.from_dict(ec, orient="index", columns=["eigen_centrality"])
             .reset_index()
-            .rename(columns={"index": "node", "eigen_centrality": "eigen_centrality"})
+            .rename(columns={"index": "node_id", "eigen_centrality": "eigen_centrality"})
         )
 
-    out = sparkdf.groupby(component).apply(eigenc)
+    out = sparkdf.groupby(cluster_id_colname).apply(eigenc)
     return out
 
 
 def harmoniccentrality(
-    sparkdf, src="src", dst="dst", distance="distance", component="component"
+    sparkdf, src="src", dst="dst", distance_colname="distance", cluster_id_colname="cluster_id"
 ):
 
     """
@@ -146,14 +146,14 @@ output spark dataframe:
 
     hcschema = StructType(
         [
-            StructField("node", StringType()),
+            StructField("node_id", StringType()),
             StructField("harmonic_centrality", DoubleType()),
         ]
     )
 
     psrc = src
     pdst = dst
-    pdistance = distance
+    pdistance = distance_colname
 
     @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
     def harmc(pdf):
@@ -164,9 +164,9 @@ output spark dataframe:
             pd.DataFrame.from_dict(hc, orient="index", columns=["harmonic_centrality"])
             .reset_index()
             .rename(
-                columns={"index": "node", "harmonic_centrality": "harmonic_centrality",}
+                columns={"index": "node_id", "harmonic_centrality": "harmonic_centrality",}
             )
         )
 
-    out = sparkdf.groupby(component).apply(harmc)
+    out = sparkdf.groupby(cluster_id_colname).apply(harmc)
     return out
