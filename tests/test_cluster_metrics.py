@@ -12,10 +12,10 @@ import json
 def test_diameter_transitivity(spark):
     # Create an Edge DataFrame with "src" and "dst" columns
     data_list = [
-        {"src": "a", "dst": "b", "distance": 0.4, "component": 1},
-        {"src": "b", "dst": "c", "distance": 0.56, "component": 1},
-        {"src": "d", "dst": "e", "distance": 0.2, "component": 2},
-        {"src": "f", "dst": "e", "distance": 0.8, "component": 2},
+        {"src": "a", "dst": "b", "distance": 0.4, "cluster_id": 1},
+        {"src": "b", "dst": "c", "distance": 0.56, "cluster_id": 1},
+        {"src": "d", "dst": "e", "distance": 0.2, "cluster_id": 2},
+        {"src": "f", "dst": "e", "distance": 0.8, "cluster_id": 2},
     ]
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
@@ -36,10 +36,10 @@ def test_diameter_transitivity(spark):
 def test_diameter_transitivity_customcolname(spark):
     # Create an Edge DataFrame with "id_l" and "id_r" columns
     data_list = [
-        {"id_l": "a", "id_r": "b", "distance": 0.4, "component": 1},
-        {"id_l": "b", "id_r": "c", "distance": 0.56, "component": 1},
-        {"id_l": "d", "id_r": "e", "distance": 0.2, "component": 2},
-        {"id_l": "f", "id_r": "e", "distance": 0.8, "component": 2},
+        {"id_l": "a", "id_r": "b", "distance": 0.4, "cluster_id": 1},
+        {"id_l": "b", "id_r": "c", "distance": 0.56, "cluster_id": 1},
+        {"id_l": "d", "id_r": "e", "distance": 0.2, "cluster_id": 2},
+        {"id_l": "f", "id_r": "e", "distance": 0.8, "cluster_id": 2},
     ]
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
@@ -63,7 +63,7 @@ def test_diameter_transitivity_customcolname2(spark):
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     e_df = e_df.withColumn("weight", 1.0 - f.col("distance"))
 
-    df_result = cluster_main_stats(e_df, src="id_l", dst="id_r",component="estimated_id").toPandas()
+    df_result = cluster_main_stats(e_df, src="id_l", dst="id_r",cluster_id_colname="estimated_id").toPandas()
 
     assert df_result["diameter"][0] == 2
     assert df_result["diameter"][1] == 2    

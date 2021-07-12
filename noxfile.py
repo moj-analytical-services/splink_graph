@@ -1,6 +1,5 @@
 import nox
 
-
 @nox.session()
 @nox.parametrize(
     "python,pyspark",

@@ -31,13 +31,13 @@ import numpy as np
 # https://stackoverflow.com/questions/58458415/pandas-scalar-udf-failing-illegalargumentexception
 
 
-def cluster_main_stats(sparkdf, src="src", dst="dst", component="component"):
+def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
     """    
 
     input spark dataframe:
 
 ---+---+------+----------+---------------------+
-|src|dst|weight| component|            distance|
+|src|dst|weight|cluster_id|            distance|
 +---+---+------+----------+--------------------+
 |  f|  d|  0.67|         0| 0.32999999999999996|
 |  f|  g|  0.34|         0|  0.6599999999999999|
@@ -64,7 +64,7 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", component="component"):
     @pandas_udf(
         StructType(
             [
-                StructField("component", LongType()),
+                StructField("cluster_id", LongType()),
                 StructField("diameter", IntegerType()),
                 StructField("transitivity", FloatType()),
                 StructField("tri_clustcoeff", FloatType()),
@@ -85,12 +85,12 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", component="component"):
         sqc = sum(sq.values()) / len(sq.values())
         h = weisfeiler_lehman_graph_hash(nxGraph)
 
-        co = pdf[component].iloc[0]  # access component id
+        co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
             [[co] + [d] + [t] + [tric] + [sqc] + [h]],
             columns=[
-                "component",
+                "cluster_id",
                 "diameter",
                 "transitivity",
                 "tri_clustcoeff",
@@ -99,7 +99,10 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", component="component"):
             ],
         )
 
-    out = sparkdf.groupby(component).apply(drt)
+    out = sparkdf.groupby(cluster_id_colname).apply(drt)
+    
+    
+    
     out = (
         out.withColumn("tri_clustcoeff", f.round(f.col("tri_clustcoeff"), 3))
         .withColumn("sq_clustcoeff", f.round(f.col("sq_clustcoeff"), 3))
@@ -109,7 +112,7 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", component="component"):
 
 
 def cluster_connectivity(
-    sparkdf, src="src", dst="dst", distance="distance", component="component"
+    sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
 ):
     """    
     Measures the minimal number of vertices that can be removed to disconnect the graph.
@@ -152,7 +155,7 @@ def cluster_connectivity(
     @pandas_udf(
         StructType(
             [
-                StructField("component", LongType()),
+                StructField("cluster_id", LongType()),
                 StructField("node_conn", IntegerType()),
                 StructField("edge_conn", IntegerType()),
                 StructField("global_efficiency", FloatType()),
@@ -169,20 +172,20 @@ def cluster_connectivity(
         ec = nx.algorithms.edge_connectivity(nxGraph)
         ge = round(nx.global_efficiency(nxGraph), 3)
 
-        co = pdf[component].iloc[0]  # access component id
+        co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
             [[co] + [nc] + [ec] + [ge]],
-            columns=["component", "node_conn", "edge_conn", "global_efficiency"],
+            columns=["cluster_id", "node_conn", "edge_conn", "global_efficiency"],
         )
 
-    out = sparkdf.groupby(component).apply(conn_eff)
+    out = sparkdf.groupby(cluster_id_colname).apply(conn_eff)
 
     return out
 
 
 def cluster_modularity(
-    sparkdf, src="src", dst="dst", distance="distance", component="component"
+    sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
 ):
     """    
     input spark dataframe:
@@ -213,7 +216,7 @@ def cluster_modularity(
     @pandas_udf(
         StructType(
             [
-                StructField("component", LongType()),
+                StructField("cluster_id", LongType()),
                 StructField("comp_eb_modularity", FloatType()),
             ]
         ),
@@ -235,20 +238,20 @@ def cluster_modularity(
         comp = girvan_newman(nxGraph, most_valuable_edge=most_central_edge)
         gn = tuple(sorted(c) for c in next(comp))
 
-        co = pdf[component].iloc[0]  # access component id
+        co = pdf[cluster_id].iloc[0]  # access component id
         co_eb_mod = nx_comm.modularity(nxGraph, gn)
 
         return pd.DataFrame(
-            [[co] + [co_eb_mod]], columns=["component", "cluster_eb_modularity",],
+            [[co] + [co_eb_mod]], columns=["cluster_id", "cluster_eb_modularity",],
         )
 
-    out = sparkdf.groupby(component).apply(cluster_eb_modularity)
+    out = sparkdf.groupby(cluster_id_colname).apply(cluster_eb_modularity)
 
     return out
 
 
 def cluster_avg_edge_betweenness(
-    sparkdf, src="src", dst="dst", distance="distance", component="component"
+    sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
 ):
     """    
     
@@ -281,7 +284,7 @@ def cluster_avg_edge_betweenness(
     @pandas_udf(
         StructType(
             [
-                StructField("component", LongType()),
+                StructField("cluster_id", LongType()),
                 StructField("avg_cluster_eb", FloatType()),
             ]
         ),
@@ -292,7 +295,7 @@ def cluster_avg_edge_betweenness(
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         edge_btwn = edge_betweenness_centrality(
-            nxGraph, k=min(len(nxGraph), np.inf), normalized=True
+            nxGraph, normalized=True
         )
 
         if len(edge_btwn) > 0:
@@ -300,10 +303,10 @@ def cluster_avg_edge_betweenness(
         else:
             aeb = 0.0
 
-        co = pdf[component].iloc[0]  # access component id
+        co = pdf[cluster_id_colname].iloc[0]  # access component id
 
-        return pd.DataFrame([[co] + [aeb]], columns=["component", "avg_cluster_eb",],)
+        return pd.DataFrame([[co] + [aeb]], columns=["cluster_id", "avg_cluster_eb",],)
 
-    out = sparkdf.groupby(component).apply(avg_eb)
+    out = sparkdf.groupby(cluster_id_colname).apply(avg_eb)
 
     return out
