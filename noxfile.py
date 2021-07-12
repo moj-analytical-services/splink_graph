@@ -1,15 +1,20 @@
 import nox
 
-
-@nox.session
-@nox.parametrize("pyspark", ["2.4.5", "3.0.1"])
-@nox.parametrize("pandas", ["0.25.3", "1.0.1"])
-def tests(session, pandas, pyspark):
+@nox.session()
+@nox.parametrize(
+    "python,pyspark",
+    [
+        (python, pyspark)
+        for python in ("3.7", "3.8")
+        for pyspark in ("2.4.5", "3.0.1")
+        if (python, pyspark) != ("3.8", "2.4.5")
+    ],)
+def tests(session, pyspark):
 
     session.run("python", "-m", "pip", "install", "--upgrade", "pip")
     session.install("cmake")
     session.install("pytest")
-    session.install(f"pandas=={pandas}")
+    session.install("pandas==0.25.3")
     session.install("numpy==1.19.5", "--no-deps")
     session.install("scipy==1.6.0", "--no-deps")
 
