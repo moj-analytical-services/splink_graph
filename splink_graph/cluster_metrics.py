@@ -115,9 +115,11 @@ def cluster_connectivity(
     sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
 ):
     """    
+    node connectivity:
     Measures the minimal number of vertices that can be removed to disconnect the graph.
     Larger vertex (node) connectivity --> harder to disconnect graph
     
+    edge connectivity:
     Measures the minimal number of edges that can be removed to disconnect the graph.
     Larger edge connectivity --> harder to disconnect graph
     
