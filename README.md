@@ -1,5 +1,5 @@
 
-![](https://img.shields.io/badge/spark-%3E%3D2.4.5-orange) ![](https://img.shields.io/badge/pyarrow-%3C%3D%200.14.1-blue)
+![](https://img.shields.io/badge/spark-%3E%3D2.4.5-orange) ![](https://img.shields.io/badge/pyarrow-%3C%3D%200.14.1-blue) ![](https://img.shields.io/github/languages/top/moj-analytical-services/splink_graph) ![](https://img.shields.io/pypi/v/splink_graph)
 
 # splink_graph
 
@@ -28,7 +28,7 @@ For a primer on the terminology used please look at TERMINOLOGY.md file in this 
 Cluster metrics usually have as an input a spark edgelist dataframe that also includes the component_id (cluster_id) where the edge is in.
 The output is a row of one or more metrics per cluster
 
-Cluster metrics curretnly offered: 
+Cluster metrics currently offered: 
 
 - diameter
 - transitivity
