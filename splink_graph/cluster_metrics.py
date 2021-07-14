@@ -25,6 +25,7 @@ from networkx.algorithms.graph_hashing import weisfeiler_lehman_graph_hash
 import os
 import pandas as pd
 import numpy as np
+from splink_graph.netwx import _laplacian_spectrum
 
 # setup to work around with pandas udf
 # see answers on
@@ -33,6 +34,8 @@ import numpy as np
 
 def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
     """    
+    calculate diameter / transitivity(GCC) / triangle clustering coefficient LCC / square clustering coeff
+    and the weisfeiler-lehman graph hash of a cluster
 
     input spark dataframe:
 
@@ -123,6 +126,9 @@ def cluster_connectivity(
     Measures the minimal number of edges that can be removed to disconnect the graph.
     Larger edge connectivity --> harder to disconnect graph
     
+    algebraic connectivity:
+    The larger the algebraic connectivity, the more connected the graph is.
+    
     The global efficiency of a graph is the average inverse distance between all pairs of nodes in the graph.
     The larger the average inverse shortest path distance, the more robust the graph.
     This can be viewed through the lens of network connectivity i.e., larger average inverse distance
@@ -160,6 +166,7 @@ def cluster_connectivity(
                 StructField("cluster_id", LongType()),
                 StructField("node_conn", IntegerType()),
                 StructField("edge_conn", IntegerType()),
+                StructField("algebraic_conn", FloatType()),
                 StructField("global_efficiency", FloatType()),
             ]
         ),
@@ -173,12 +180,15 @@ def cluster_connectivity(
         nc = nx.algorithms.node_connectivity(nxGraph)
         ec = nx.algorithms.edge_connectivity(nxGraph)
         ge = round(nx.global_efficiency(nxGraph), 3)
+        
+        lapl_spc = _laplacian_spectrum(nxGraph)
+        ac = round(lapl_spc[1], 3)
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[co] + [nc] + [ec] + [ge]],
-            columns=["cluster_id", "node_conn", "edge_conn", "global_efficiency"],
+            [[co] + [nc] + [ec] + [ac] + [ge]],
+            columns=["cluster_id", "node_conn", "edge_conn","algebraic_conn", "global_efficiency"],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(conn_eff)
@@ -229,8 +239,19 @@ def cluster_modularity(
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
 
-        ## TODO: comments! to document this code
-
+        ## TODO: document this code
+        # this is a method that calculates the modularity of a cluster if partitioned into 2 parts 
+        # where the split is happening where the highest edge betweeness is.
+        
+        # if modularity is negative :
+        #      that means that the split just leaves singleton nodes or something like that. 
+        #      basically the cluster is of no interest
+        # if modularity is 0 or very close to 0 :
+        #      its a cluster of well connected nodes so... nothing to see here really.
+        # if modularity is around 0.4+ then :
+        #      its a cluster of possible interest
+        
+        
         def most_central_edge(G):
             centrality = edge_betweenness_centrality(
                 G, weight=pdistance, normalized=True

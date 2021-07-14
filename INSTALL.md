@@ -56,5 +56,5 @@ No need for any special configuration.
 
 ## Testing
 
-In order to test splink_graph if you have cloned splink_grap please run 
+In order to test splink_graph if you have cloned splink_graph please run 
 `pytest -v` on a terminal while located at the root folder of the repo.
