@@ -1,5 +1,5 @@
 
-![](https://img.shields.io/badge/spark-%3E%3D2.4.5-orange) ![](https://img.shields.io/badge/pyarrow-%3C%3D%200.14.1-blue) ![](https://img.shields.io/github/languages/top/moj-analytical-services/splink_graph) ![](https://img.shields.io/pypi/v/splink_graph)
+![](https://img.shields.io/badge/spark-%3E%3D2.4.x-orange) ![](https://img.shields.io/github/languages/top/moj-analytical-services/splink_graph) ![](https://img.shields.io/pypi/v/splink_graph) ![Downloads](https://pepy.tech/badge/splink-graph)
 
 # splink_graph
 
@@ -16,11 +16,16 @@ such as the ones created from the outputs of data linking processes (candicate p
 
 The main aim of `splink_graph` is to offer a small set of functions that work on top of established graph packages like `graphframes` and `networkx`  , that can help with the process of graph analysis of the output of probabilistic data linkage tools.
 
+Calculations performed per cluster in a parallel manner thanks to the underlying help from `pyArrow`
+
 ---
+## How to Install : 
+For dependencies and other important info so you can run these functions without an issue please consult
+`INSTALL.md` on this repo
 
-## Functionality offered
+## Functionality offered :
 
-For a primer on the terminology used please look at TERMINOLOGY.md file in this repo
+For a primer on the terminology used please look at `TERMINOLOGY.md` file in this repo
 
 
 ####  Cluster metrics
@@ -28,18 +33,19 @@ For a primer on the terminology used please look at TERMINOLOGY.md file in this 
 Cluster metrics usually have as an input a spark edgelist dataframe that also includes the component_id (cluster_id) where the edge is in.
 The output is a row of one or more metrics per cluster
 
+
 Cluster metrics currently offered: 
 
-- diameter
-- transitivity
-- cluster triangle clustering coeff
-- cluster square clustering coeff
-- cluster node connectivity
-- edge connectivity
+- diameter (largest shortest distance in a cluster)
+- transitivity (or Global Clustering Coefficient in the related literature)
+- cluster triangle clustering coeff (or Local Clustering Coefficient in the related literature)
+- cluster square clustering coeff (useful for bipartite networks)
+- cluster node connectivity 
+- cluster edge connectivity
 - cluster efficiency
 - cluster modularity
 - cluster avg edge betweenness
-- cluster weisfeiler lehman graphhash
+- cluster weisfeiler lehman graphhash (in order to quickly test for graph homomorphisms)
 
 Cluster metrics are really helpful at finding the needle (of for example clusters with possible linking errors) in the 
 haystack (whole set of clusters after the data linking process)
