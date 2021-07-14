@@ -32,17 +32,17 @@ Cluster metrics currently offered:
 
 - diameter
 - transitivity
-- triangle clustering coeff
-- square clustering coeff
-- graphhash
-- node connectivity
+- cluster triangle clustering coeff
+- cluster square clustering coeff
+- cluster node connectivity
 - edge connectivity
 - cluster efficiency
 - cluster modularity
 - cluster avg edge betweenness
 - cluster weisfeiler lehman graphhash
 
-Cluster metrics are really helpful in finding the needle (of clusters with possible linking errors) in the haystack (whole set of clusters)
+Cluster metrics are really helpful at finding the needle (of for example clusters with possible linking errors) in the 
+haystack (whole set of clusters after the data linking process)
 
 ---
 
