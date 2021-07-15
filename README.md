@@ -45,7 +45,7 @@ Cluster metrics currently offered:
 - cluster efficiency
 - cluster modularity
 - cluster avg edge betweenness
-- cluster weisfeiler lehman graphhash (in order to quickly test for graph homomorphisms)
+- cluster weisfeiler lehman graphhash (in order to quickly test for graph isomorphisms)
 
 Cluster metrics are really helpful at finding the needle (of for example clusters with possible linking errors) in the 
 haystack (whole set of clusters after the data linking process)

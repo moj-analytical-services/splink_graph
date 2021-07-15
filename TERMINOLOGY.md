@@ -4,46 +4,86 @@
 Like any discipline, graphs come with their own set of nomenclature. 
 The following descriptions are intentionally simplified—more mathematically rigorous definitions can be found in any graph theory textbook.
 
+`Graph theory` 
+
+a language for networks/graphs. In summary, graph theory gives us a language for networks/graphs. It allows us to define graphs exactly and to quantify graph 
+properties at all different levels. This quantification is likely to improve further since new graph measures are described regularly. 
+
 `Graph` 
 
-    — A data structure G = (V, E) where V and E are a set of vertices/nodes and edges.
+A data structure G = (V, E) where V and E are a set of vertices/nodes and edges.
 
 `Vertex/Node` 
 
-    — Represents a single entity such as a person or an object,
+Represents a single entity such as a person or an object,
 
 `Edge` 
 
-    — Represents a relationship between two vertices (e.g., are these two vertices friends on a social network?).
+Represents a relationship between two vertices (e.g., are these two vertices friends on a social network?).
 
 `Directed Graph vs. Undirected Graph` 
 
-    — Denotes whether the relationship represented by edges is symmetric or not 
+Denotes whether the relationship represented by edges is symmetric or not 
 
 `Weighted vs Unweighted Graph` 
 
-     — In weighted graphs edges have a weight that could represent cost of traversing or a similarity score or a distance score
+In weighted graphs edges have a weight that could represent cost of traversing or a similarity score or a distance score
 
-     — In unweighted graphs edges have no weight and simply show connections . example: course prerequisites
+In unweighted graphs edges have no weight and simply show connections . example: course prerequisites
 
 `Subgraph` 
 
-    — A set of vertices and edges that are a subset of the full graph's vertices and edges.
+A set of vertices and edges that are a subset of the full graph's vertices and edges.
 
 `Degree` 
     
-    — A vertex/node measurement quantifying the number of connected edges 
+A vertex/node measurement quantifying the number of connected edges 
 
 `Connected Component` 
 
-    — A strongly connected subgraph, meaning that every vertex can reach the other vertices in the subgraph.
+A strongly connected subgraph, meaning that every vertex can reach the other vertices in the subgraph.
 
 `Shortest Path` 
     
-    — The lowest number of edges required to traverse between two specific vertices/nodes.
+unweighted: The lowest number of edges required to traverse between two specific vertices/nodes unweighted
+    
+weighted: The edges with the least traversal cost between two specific vertices/nodes  
+    
+`diameter` 
 
+The diameter of a graph is the largest of the shortest distances in that graph
 
+`transitivity` (or `Global Clustering Coefficient` in the related literature)
 
+The global clustering coefficient is based on triplets of nodes in a graph. A triplet consists of three connected nodes. 
+A triangle therefore includes three closed triplets, one centered on each of the nodes 
+(n.b. this means the three triplets in a triangle come from overlapping selections of nodes). 
+The global clustering coefficient is the number of closed triplets (or 3 x triangles) over the total number of triplets (both open and closed)
+  
+`triangle clustering coeff` (or `Local Clustering Coefficient` in the related literature)
+
+The local clustering coefficient for a node is then given by the proportion of links 
+between the vertices within its neighborhood divided by the number of links that could possibly exist between them. 
+The local clustering coefficient for a graph is the average LCC for all the nodes in that graph
+
+`square clustering coeff` 
+
+quantifies the abundance of connected squares in a graph (useful for bipartite networks where nodes cannot be connected in triangles)  
+   
+`node connectivity`
+
+Node connectivity of a graph gives for the minimum number of nodes that need to be removed to separate 
+the remaining nodes into two or more isolated subgraphs.
+    
+`edge connectivity`
+
+Edge connectivity of a graph gives for the minimum number of edges that need to be removed to separate 
+the remaining nodes into two or more isolated subgraphs.
+    
+`weisfeiler lehman graphhash` 
+
+A Weisfeiler Lehman graph hash offers a way to quickly test for graph isomorphisms. Hashes are identical for isomorphic graphs and there are strong guarantees 
+that non-isomorphic graphs will get different hashes
 
 
 ---
