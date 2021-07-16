@@ -13,6 +13,10 @@ from pyspark.sql.types import LongType, StringType, FloatType, DoubleType
 
 
 def _graphharmoniser(sparkdf, colsrc, coldst):
+    
+    
+    
+    
     sparkdf = sparkdf.withColumn(
         "newsrc",
         when(f.col(colsrc) < f.col(coldst), f.col(colsrc)).otherwise(f.col(coldst)),
@@ -108,13 +112,16 @@ def _laplacian_spectrum(nxgraph):
     return la_spectrum
 
 def _from_unweighted_graphframe_to_nxGraph(g):
-    """Takes as input:
-       
-           an unweighted Graphframe graph g 
+    """
+    
+    Parameters:
+    
+        g (Graphframe): an unweighted Graphframe graph g    
            
-       Returns: 
+           
+        Returns: 
        
-           an unweighted networkx graph"""
+        nxGraph    an unweighted networkx graph"""
 
     nxGraph = nx.Graph()
     nxGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())

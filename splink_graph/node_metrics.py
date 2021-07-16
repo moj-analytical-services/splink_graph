@@ -36,26 +36,25 @@ A high score means that a node is connected to other nodes that have high scores
 
 input spark dataframe:
 
----+---+------+----------+---------------------+
-|src|dst|weight| component|            distance|
-+---+---+------+----------+--------------------+
-|  f|  d|  0.67|         0| 0.32999999999999996|
-|  f|  g|  0.34|         0|  0.6599999999999999|
-|  b|  c|  0.56|8589934592| 0.43999999999999995|
-|  g|  h|  0.99|         0|0.010000000000000009|
-|  a|  b|   0.4|8589934592|                 0.6|
-|  h|  i|   0.5|         0|                 0.5|
-|  h|  j|   0.8|         0| 0.19999999999999996|
-|  d|  e|  0.84|         0| 0.16000000000000003|
-|  e|  f|  0.65|         0|                0.35|
-+---+---+------+----------+--------------------+
+
+|src|dst|weight|cluster_id|distance|
+|---|---|------|----------|--------|
+|  f|  d|  0.67|         0| 0.329|
+|  f|  g|  0.34|         0| 0.659|
+|  b|  c|  0.56|8589934592| 0.439|
+|  g|  h|  0.99|         0|0.010|
+|  a|  b|   0.4|8589934592|0.6|
+|  h|  i|   0.5|         0|0.5|
+|  h|  j|   0.8|         0| 0.199|
+|  d|  e|  0.84|         0| 0.160|
+|  e|  f|  0.65|         0|0.35|
+
 
 output spark dataframe:    
     
 
-+----+-------------------+
 |node|   eigen_centrality|
-+----+-------------------+
+|----|-------------------|
 |   b|  0.707106690085642|
 |   c| 0.5000000644180599|
 |   a| 0.5000000644180599|
@@ -66,7 +65,7 @@ output spark dataframe:
 |   i|0.12277029263709134|
 |   j|0.12277029263709134|
 |   e| 0.4584903903420785|
-+----+-------------------+
+
    
 
     """
@@ -82,7 +81,7 @@ output spark dataframe:
     pdistance = distance_colname
 
     @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
-    def eigenc(pdf):
+    def eigenc(pdf:pd.DataFrame)->pd.DataFrame:
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         ec = eigenvector_centrality(nxGraph)
@@ -112,25 +111,23 @@ This enables it deal with infinite values.
 
 input spark dataframe:
 
----+---+------+----------+---------------------+
-|src|dst|weight| component|            distance|
-+---+---+------+----------+--------------------+
-|  f|  d|  0.67|         0| 0.32999999999999996|
-|  f|  g|  0.34|         0|  0.6599999999999999|
-|  b|  c|  0.56|8589934592| 0.43999999999999995|
-|  g|  h|  0.99|         0|0.010000000000000009|
-|  a|  b|   0.4|8589934592|                 0.6|
-|  h|  i|   0.5|         0|                 0.5|
-|  h|  j|   0.8|         0| 0.19999999999999996|
-|  d|  e|  0.84|         0| 0.16000000000000003|
-|  e|  f|  0.65|         0|                0.35|
-+---+---+------+----------+--------------------+
+|src|dst|weight|cluster_id|distance|
+|---|---|------|----------|--------|
+|  f|  d|  0.67|         0| 0.329|
+|  f|  g|  0.34|         0| 0.659|
+|  b|  c|  0.56|8589934592| 0.439|
+|  g|  h|  0.99|         0|0.010|
+|  a|  b|   0.4|8589934592|0.6|
+|  h|  i|   0.5|         0|0.5|
+|  h|  j|   0.8|         0| 0.199|
+|  d|  e|  0.84|         0| 0.160|
+|  e|  f|  0.65|         0|0.35|
 
 output spark dataframe:
  
-+----+-------------------+
+
 |node|harmonic_centrality|
-+----+-------------------+
+|----|-------------------|
 |   b|                2.0|
 |   c|                1.5|
 |   a|                1.5|
@@ -141,7 +138,7 @@ output spark dataframe:
 |   i| 2.8333333333333335|
 |   j| 2.8333333333333335|
 |   e| 3.3333333333333335|
-+----+-------------------+
+
     """
 
     hcschema = StructType(
@@ -156,7 +153,7 @@ output spark dataframe:
     pdistance = distance_colname
 
     @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
-    def harmc(pdf):
+    def harmc(pdf:pd.DataFrame)->pd.DataFrame:
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         hc = harmonic_centrality(nxGraph)

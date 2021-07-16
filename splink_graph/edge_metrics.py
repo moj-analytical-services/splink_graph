@@ -15,18 +15,6 @@ from pyspark.sql.functions import pandas_udf, PandasUDFType
 from networkx.algorithms.bridges import bridges
 from networkx.algorithms.centrality import edge_betweenness_centrality
 
-
-
-eboutSchema = StructType(
-    [
-        StructField("src", StringType()),
-        StructField("dst", StringType()),
-        StructField("eb", FloatType()),
-        StructField("cluster_id", LongType()),
-    ]
-)
-
-
 def edgebetweeness(
     sparkdf, src="src", dst="dst", distance_col="distance", cluster_id_col="cluster_id"
 ):
@@ -35,9 +23,17 @@ def edgebetweeness(
     pdst = dst
     pdistance = distance_col
     
-
+    eboutSchema = StructType(
+    [
+        StructField("src", StringType()),
+        StructField("dst", StringType()),
+        StructField("eb", FloatType()),
+        StructField("cluster_id", LongType()),
+    ]
+)
+    
     @pandas_udf(eboutSchema, PandasUDFType.GROUPED_MAP)
-    def ebdf(pdf):
+    def ebdf(pdf:pd.DataFrame) -> pd.DataFrame:
 
         srclist = []
         dstlist = []
@@ -123,7 +119,7 @@ output spark dataframe:
     )
 
     @pandas_udf(bridgesoutSchema, PandasUDFType.GROUPED_MAP)
-    def br_p_udf(pdf):
+    def br_p_udf(pdf:pd.DataFrame) -> pd.DataFrame:
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
