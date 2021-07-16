@@ -25,11 +25,61 @@ from networkx.algorithms.graph_hashing import weisfeiler_lehman_graph_hash
 import os
 import pandas as pd
 import numpy as np
-from splink_graph.netwx import _laplacian_spectrum
+from splink_graph.utils import _laplacian_spectrum
 
 # setup to work around with pandas udf
 # see answers on
 # https://stackoverflow.com/questions/58458415/pandas-scalar-udf-failing-illegalargumentexception
+
+
+def cluster_basic_stats(df, src="src", dst="dst",cluster_id_colname="cluster_id",weight_colname="weight"):
+
+    """
+    
+input spark dataframe:
+
+
+|src|dst|cluster_id|
+|---|---|----------|
+|  e|  f|         0|
+
+    
+    
+output spark dataframe:
+
+|cluster_id|               nodes|nodecount|edgecount|density|
+|----------|--------------------|---------|---------|------|
+|8589934592|           [b, a, c]|        3|        2|0.666|
+|         0|[h, g, f, e, d, i..]|        7|        7|0.333|
+
+
+
+    
+    
+    """
+
+    edgec = df.groupby(cluster_id_colname).agg(f.count(weight_colname).alias("edgecount"))
+    srcdf = df.groupby(cluster_id_colname).agg(f.collect_set(src).alias("sources"))
+    dstdf = df.groupby(cluster_id_colname).agg(f.collect_set(dst).alias("destinations"))
+    allnodes = srcdf.join(dstdf, on=cluster_id_colname)
+    allnodes = allnodes.withColumn(
+        "nodes", f.array_union(f.col("sources"), f.col("destinations"))
+    ).withColumn("nodecount", f.size(f.col("nodes")))
+
+    output = allnodes.join(edgec, on=cluster_id_colname)
+
+    # density related calcs based on nodecount and max possible number of edges in an undirected graph
+
+    output = output.withColumn(
+        "maxNumberOfEdgesundir", f.col("nodecount") * (f.col("nodecount") - 1.0) / 2.0,
+    )
+    output = output.withColumn(
+        "density", f.round(f.col("edgecount") / f.col("maxNumberOfEdgesundir"), 3)
+    ).drop("sources", "destinations", "maxNumberOfEdgesundir")
+
+    return output
+
+
 
 
 def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
@@ -119,15 +169,20 @@ def cluster_connectivity(
 ):
     """    
     node connectivity:
+    
     Measures the minimal number of vertices that can be removed to disconnect the graph.
     Larger vertex (node) connectivity --> harder to disconnect graph
     
     edge connectivity:
+    
     Measures the minimal number of edges that can be removed to disconnect the graph.
     Larger edge connectivity --> harder to disconnect graph
     
     algebraic connectivity:
+    
     The larger the algebraic connectivity, the more connected the graph is.
+    
+    efficiency:
     
     The global efficiency of a graph is the average inverse distance between all pairs of nodes in the graph.
     The larger the average inverse shortest path distance, the more robust the graph.
@@ -181,9 +236,9 @@ def cluster_connectivity(
         ec = nx.algorithms.edge_connectivity(nxGraph)
         ge = round(nx.global_efficiency(nxGraph), 3)
         
-        lapl_spc = _laplacian_spectrum(nxGraph)
-        ac = round(lapl_spc[1], 3)
-
+        lapl_spc = _laplacian_spectrum(nxGraph) 
+        ac = round(lapl_spc[1], 3) # calculate algebraic connectivity
+        
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
