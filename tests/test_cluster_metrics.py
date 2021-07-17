@@ -1,13 +1,12 @@
 from pyspark.sql import Row
 
-from splink_graph.cluster_metrics import cluster_main_stats,cluster_basic_stats
+from splink_graph.cluster_metrics import cluster_main_stats, cluster_basic_stats
 
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import pyspark.sql.functions as f
 import json
-
 
 
 def test_cluster_basic_stats(spark):
@@ -21,14 +20,16 @@ def test_cluster_basic_stats(spark):
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     df_result = cluster_basic_stats(
-        e_df, src="src", dst="dst",cluster_id_colname="cluster_id",weight_colname="weight",
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
+        weight_colname="weight",
     ).toPandas()
 
     assert (df_result["nodecount"] == 3).all()
     assert (df_result["edgecount"] == 2).all()
     assert df_result["density"].values == pytest.approx(0.666667, 0.01)
-
-
 
 
 def test_cluster_main_stats(spark):
@@ -72,7 +73,7 @@ def test_cluster_main_stats_customcolname(spark):
     assert df_result["diameter"][0] == 2
     assert df_result["diameter"][1] == 2
 
-    
+
 def test_cluster_main_stats_customcolname2(spark):
     # Create an Edge DataFrame with "id_l" and "id_r" columns
     data_list = [
@@ -85,8 +86,9 @@ def test_cluster_main_stats_customcolname2(spark):
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     e_df = e_df.withColumn("weight", 1.0 - f.col("distance"))
 
-    df_result = cluster_main_stats(e_df, src="id_l", dst="id_r",cluster_id_colname="estimated_id").toPandas()
+    df_result = cluster_main_stats(
+        e_df, src="id_l", dst="id_r", cluster_id_colname="estimated_id"
+    ).toPandas()
 
     assert df_result["diameter"][0] == 2
-    assert df_result["diameter"][1] == 2    
-    
+    assert df_result["diameter"][1] == 2

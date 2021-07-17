@@ -11,8 +11,8 @@ from pyspark.sql.functions import when
 from pyspark.sql.types import LongType, StringType, FloatType, DoubleType
 
 
-
 def _graphharmoniser(sparkdf, colsrc, coldst):
+
     sparkdf = sparkdf.withColumn(
         "newsrc",
         when(f.col(colsrc) < f.col(coldst), f.col(colsrc)).otherwise(f.col(coldst)),
@@ -31,7 +31,34 @@ def _graphharmoniser(sparkdf, colsrc, coldst):
     return sparkdf
 
 
-def _nodearray_from_edge_df(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
+def _assert_columns(sparkdf, columns):
+    """ 
+    Raise an exception if the dataframe
+    does not contain the desired columns
+    
+    Args:
+    
+        sparkdf (pyspark.sql.DataFrame): 
+        columns (list of strings):  Set of columns that must be present in df
+    Raises:
+        ValueError: if the dataframe does not contain the desired columns
+    
+    
+    """
+    have = set(df.columns)
+    need = set(columns)
+    if not need.issubset(have):
+        raise ValueError("Missing columns in DataFrame: %s" % (", ".join(need.difference(have))))
+
+
+
+
+
+
+
+def _nodearray_from_edge_df(
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"
+):
 
     out = sparkdf.groupby(cluster_id_colname).agg(
         f.collect_set(src).alias("_1"), f.collect_list(dst).alias("_2")
@@ -75,15 +102,18 @@ def _nx_longest_shortest_path(lengths):
 def _laplacian_matrix(nxgraph):
     """
 
-    Takes as input :
-            undirected NetworkX graph
+    Args:
+        nxgraph: undirected NetworkX graph
+
+    Returns:
+        L: Scipy sparse format Laplacian matrix
             
+            
+            
+    The Laplacian matrix L = D - A  is calculated where
     A: Adjacency Matrix
     D: Diagonal Matrix
     L: Laplacian Matrix
-            
-     Returns:
-            Scipy sparse format Laplacian matrix
     """
     A = nx.to_scipy_sparse_matrix(
         nxgraph, format="csr", dtype=np.float, nodelist=nxgraph.nodes
@@ -101,20 +131,32 @@ def _laplacian_matrix(nxgraph):
 
 
 def _laplacian_spectrum(nxgraph):
+    """
+    Args:
+        nxgraph: undirected NetworkX graph
+
+    Returns:
+       la_spectrum: laplacian spectrum of the graph
+    
+    """
 
     la_spectrum = nx.laplacian_spectrum(nxgraph)
     la_spectrum = np.sort(la_spectrum)  # sort ascending
 
     return la_spectrum
 
+
 def _from_unweighted_graphframe_to_nxGraph(g):
-    """Takes as input:
-       
-           an unweighted Graphframe graph g 
+    """
+    
+    Args:
+    
+        g (Graphframe): an unweighted Graphframe graph g    
            
-       Returns: 
+           
+    Returns: 
        
-           an unweighted networkx graph"""
+        nxGraph:    an unweighted networkx graph"""
 
     nxGraph = nx.Graph()
     nxGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())
@@ -123,14 +165,14 @@ def _from_unweighted_graphframe_to_nxGraph(g):
 
 
 def _from_weighted_graphframe_to_nxGraph(g):
-    """Takes as input:
+    """
+        Args:
        
-           a weighted Graphframe graph g 
-           (note: edge weight column needs to be called as weight on the Graphframe)
+           g (Graphframe): a weighted Graphframe graph g (note: edge weight column needs to be called as weight on the Graphframe)
            
-       Returns: 
+        Returns: 
        
-           a weighted networkx graph"""
+           nxGraph:a weighted networkx graph"""
 
     nxGraph = nx.Graph()
     nxGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())

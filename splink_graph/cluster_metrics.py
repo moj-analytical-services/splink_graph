@@ -32,33 +32,41 @@ from splink_graph.utils import _laplacian_spectrum
 # https://stackoverflow.com/questions/58458415/pandas-scalar-udf-failing-illegalargumentexception
 
 
-def cluster_basic_stats(df, src="src", dst="dst",cluster_id_colname="cluster_id",weight_colname="weight"):
+def cluster_basic_stats(
+    df, src="src", dst="dst", cluster_id_colname="cluster_id", weight_colname="weight"
+):
 
     """
     
-input spark dataframe:
+example input spark dataframe:
 
 
 |src|dst|cluster_id|
 |---|---|----------|
+|  f|  d|         0|
+|  f|  g|         0|
+|  b|  c|8589934592|
+|  g|  h|         0|
+|  a|  b|8589934592|
+|  h|  i|         0|
+|  h|  j|         0|
+|  d|  e|         0|
 |  e|  f|         0|
 
     
-    
-output spark dataframe:
+example output spark dataframe:
 
 |cluster_id|               nodes|nodecount|edgecount|density|
 |----------|--------------------|---------|---------|------|
 |8589934592|           [b, a, c]|        3|        2|0.666|
 |         0|[h, g, f, e, d, i..]|        7|        7|0.333|
 
-
-
-    
     
     """
 
-    edgec = df.groupby(cluster_id_colname).agg(f.count(weight_colname).alias("edgecount"))
+    edgec = df.groupby(cluster_id_colname).agg(
+        f.count(weight_colname).alias("edgecount")
+    )
     srcdf = df.groupby(cluster_id_colname).agg(f.collect_set(src).alias("sources"))
     dstdf = df.groupby(cluster_id_colname).agg(f.collect_set(dst).alias("destinations"))
     allnodes = srcdf.join(dstdf, on=cluster_id_colname)
@@ -80,28 +88,35 @@ output spark dataframe:
     return output
 
 
-
-
 def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
     """    
     calculate diameter / transitivity(GCC) / triangle clustering coefficient LCC / square clustering coeff
     and the weisfeiler-lehman graph hash of a cluster
+    
+    
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        cluster_id_colname: Graphframes-created connected components created cluster_id
+        
+        
 
     input spark dataframe:
 
----+---+------+----------+---------------------+
-|src|dst|weight|cluster_id|            distance|
-+---+---+------+----------+--------------------+
-|  f|  d|  0.67|         0| 0.32999999999999996|
-|  f|  g|  0.34|         0|  0.6599999999999999|
-|  b|  c|  0.56|8589934592| 0.43999999999999995|
-|  g|  h|  0.99|         0|0.010000000000000009|
-|  a|  b|   0.4|8589934592|                 0.6|
-|  h|  i|   0.5|         0|                 0.5|
-|  h|  j|   0.8|         0| 0.19999999999999996|
-|  d|  e|  0.84|         0| 0.16000000000000003|
-|  e|  f|  0.65|         0|                0.35|
-+---+---+------+----------+--------------------+
+
+|src|dst|weight|cluster_id|distance|
+|---|---|------|----------|--------|
+|  f|  d|  0.67|         0| 0.329|
+|  f|  g|  0.34|         0| 0.659|
+|  b|  c|  0.56|8589934592| 0.439|
+|  g|  h|  0.99|         0|0.010|
+|  a|  b|   0.4|8589934592|0.6|
+|  h|  i|   0.5|         0|0.5|
+|  h|  j|   0.8|         0| 0.199|
+|  d|  e|  0.84|         0| 0.160|
+|  e|  f|  0.65|         0|0.35|
+
 
 
     output spark dataframe:
@@ -127,7 +142,7 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
         ),
         functionType=PandasUDFType.GROUPED_MAP,
     )
-    def drt(pdf):
+    def drt(pdf: pd.DataFrame) -> pd.DataFrame:
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
@@ -153,9 +168,7 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(drt)
-    
-    
-    
+
     out = (
         out.withColumn("tri_clustcoeff", f.round(f.col("tri_clustcoeff"), 3))
         .withColumn("sq_clustcoeff", f.round(f.col("sq_clustcoeff"), 3))
@@ -168,43 +181,42 @@ def cluster_connectivity(
     sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
 ):
     """    
-    node connectivity:
     
-    Measures the minimal number of vertices that can be removed to disconnect the graph.
-    Larger vertex (node) connectivity --> harder to disconnect graph
-    
-    edge connectivity:
-    
-    Measures the minimal number of edges that can be removed to disconnect the graph.
-    Larger edge connectivity --> harder to disconnect graph
-    
-    algebraic connectivity:
-    
-    The larger the algebraic connectivity, the more connected the graph is.
-    
-    efficiency:
-    
-    The global efficiency of a graph is the average inverse distance between all pairs of nodes in the graph.
-    The larger the average inverse shortest path distance, the more robust the graph.
-    This can be viewed through the lens of network connectivity i.e., larger average inverse distance
-    --> better connected graph --> more robust graph
-    
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        distance_colname: distance column name
+        cluster_id_colname: Graphframes-created connected components created cluster_id
+        
+    Returns:
+        
+        node_conn: Node Connectivity measures the minimal number of vertices that can be removed to disconnect the graph.
+        edge_conn: Edge connectivity measures the minimal number of edges that can be removed to disconnect the graph.
+        algebraic connectivity:
+        efficiency: The global efficiency of a grpah is the average inverse distance between all pairs of nodes in the graph.
+
+
+
+    The larger these metrics are --> the more connected the subggraph is. 
+
+
 
     input spark dataframe:
 
----+---+------+----------+---------------------+
-|src|dst|weight| component|            distance|
-+---+---+------+----------+--------------------+
-|  f|  d|  0.67|         0| 0.32999999999999996|
-|  f|  g|  0.34|         0|  0.6599999999999999|
-|  b|  c|  0.56|8589934592| 0.43999999999999995|
-|  g|  h|  0.99|         0|0.010000000000000009|
-|  a|  b|   0.4|8589934592|                 0.6|
-|  h|  i|   0.5|         0|                 0.5|
-|  h|  j|   0.8|         0| 0.19999999999999996|
-|  d|  e|  0.84|         0| 0.16000000000000003|
-|  e|  f|  0.65|         0|                0.35|
-+---+---+------+----------+--------------------+
+
+|src|dst|weight|cluster_id|distance|
+|---|---|------|----------|--------|
+|  f|  d|  0.67|         0| 0.329|
+|  f|  g|  0.34|         0| 0.659|
+|  b|  c|  0.56|8589934592| 0.439|
+|  g|  h|  0.99|         0|0.010|
+|  a|  b|   0.4|8589934592|0.6|
+|  h|  i|   0.5|         0|0.5|
+|  h|  j|   0.8|         0| 0.199|
+|  d|  e|  0.84|         0| 0.160|
+|  e|  f|  0.65|         0|0.35|
+
 
 
     output spark dataframe:
@@ -227,7 +239,7 @@ def cluster_connectivity(
         ),
         functionType=PandasUDFType.GROUPED_MAP,
     )
-    def conn_eff(pdf):
+    def conn_eff(pdf: pd.DataFrame) -> pd.DataFrame:
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
@@ -235,15 +247,21 @@ def cluster_connectivity(
         nc = nx.algorithms.node_connectivity(nxGraph)
         ec = nx.algorithms.edge_connectivity(nxGraph)
         ge = round(nx.global_efficiency(nxGraph), 3)
-        
-        lapl_spc = _laplacian_spectrum(nxGraph) 
-        ac = round(lapl_spc[1], 3) # calculate algebraic connectivity
-        
+
+        lapl_spc = _laplacian_spectrum(nxGraph)
+        ac = round(lapl_spc[1], 3)  # calculate algebraic connectivity
+
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
             [[co] + [nc] + [ec] + [ac] + [ge]],
-            columns=["cluster_id", "node_conn", "edge_conn","algebraic_conn", "global_efficiency"],
+            columns=[
+                "cluster_id",
+                "node_conn",
+                "edge_conn",
+                "algebraic_conn",
+                "global_efficiency",
+            ],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(conn_eff)
@@ -255,21 +273,33 @@ def cluster_modularity(
     sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
 ):
     """    
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        distance_colname: column name where edge distance (1-weight) is available
+        cluster_id_colname: column that contains Graphframes-created connected components created cluster_id
+        
+    Returns:
+        cluster_id: connected components created cluster_id
+        comp_eb_modularity: modularity for cluster_id if it partitioned into 2 parts at the point where the highest edge betweenness exists
+        
+        
     input spark dataframe:
 
----+---+------+----------+---------------------+
-|src|dst|weight| component|            distance|
-+---+---+------+----------+--------------------+
-|  f|  d|  0.67|         0| 0.32999999999999996|
-|  f|  g|  0.34|         0|  0.6599999999999999|
-|  b|  c|  0.56|8589934592| 0.43999999999999995|
-|  g|  h|  0.99|         0|0.010000000000000009|
-|  a|  b|   0.4|8589934592|                 0.6|
-|  h|  i|   0.5|         0|                 0.5|
-|  h|  j|   0.8|         0| 0.19999999999999996|
-|  d|  e|  0.84|         0| 0.16000000000000003|
-|  e|  f|  0.65|         0|                0.35|
-+---+---+------+----------+--------------------+
+
+|src|dst|weight|cluster_id|distance|
+|---|---|------|----------|--------|
+|  f|  d|  0.67|         0| 0.329|
+|  f|  g|  0.34|         0| 0.659|
+|  b|  c|  0.56|8589934592| 0.439|
+|  g|  h|  0.99|         0|0.010|
+|  a|  b|   0.4|8589934592|0.6|
+|  h|  i|   0.5|         0|0.5|
+|  h|  j|   0.8|         0| 0.199|
+|  d|  e|  0.84|         0| 0.160|
+|  e|  f|  0.65|         0|0.35|
+
 
 
     output spark dataframe:
@@ -289,31 +319,30 @@ def cluster_modularity(
         ),
         functionType=PandasUDFType.GROUPED_MAP,
     )
-    def cluster_eb_modularity(pdf):
+    def cluster_eb_modularity(pdf: pd.DataFrame) -> pd.DataFrame:
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
 
         ## TODO: document this code
-        # this is a method that calculates the modularity of a cluster if partitioned into 2 parts 
+        # this is a method that calculates the modularity of a cluster if partitioned into 2 parts
         # where the split is happening where the highest edge betweeness is.
-        
+
         # if modularity is negative :
-        #      that means that the split just leaves singleton nodes or something like that. 
+        #      that means that the split just leaves singleton nodes or something like that.
         #      basically the cluster is of no interest
         # if modularity is 0 or very close to 0 :
         #      its a cluster of well connected nodes so... nothing to see here really.
         # if modularity is around 0.4+ then :
         #      its a cluster of possible interest
-        
-        
-        def most_central_edge(G):
+
+        def largest_edge_betweenness(G):
             centrality = edge_betweenness_centrality(
                 G, weight=pdistance, normalized=True
             )
             return max(centrality, key=centrality.get)
 
-        comp = girvan_newman(nxGraph, most_valuable_edge=most_central_edge)
+        comp = girvan_newman(nxGraph, most_valuable_edge=largest_edge_betweenness)
         gn = tuple(sorted(c) for c in next(comp))
 
         co = pdf[cluster_id].iloc[0]  # access component id
@@ -329,26 +358,39 @@ def cluster_modularity(
 
 
 def cluster_avg_edge_betweenness(
-    sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
+    sparkdf,
+    src="src",
+    dst="dst",
+    distance_colname="distance",
+    cluster_id_colname="cluster_id",
 ):
     """    
-    
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        distance_colname: column name where edge distance (1-weight) is available
+        cluster_id_colname: column that contains Graphframes-created connected components created cluster_id
+        
+    Returns:
+        cluster_id: connected components created cluster_id
+        avg_cluster_eb: average edge betweeness for cluster_id 
 
     input spark dataframe:
 
----+---+------+----------+---------------------+
-|src|dst|weight| component|            distance|
-+---+---+------+----------+--------------------+
-|  f|  d|  0.67|         0| 0.32999999999999996|
-|  f|  g|  0.34|         0|  0.6599999999999999|
-|  b|  c|  0.56|8589934592| 0.43999999999999995|
-|  g|  h|  0.99|         0|0.010000000000000009|
-|  a|  b|   0.4|8589934592|                 0.6|
-|  h|  i|   0.5|         0|                 0.5|
-|  h|  j|   0.8|         0| 0.19999999999999996|
-|  d|  e|  0.84|         0| 0.16000000000000003|
-|  e|  f|  0.65|         0|                0.35|
-+---+---+------+----------+--------------------+
+
+|src|dst|weight|cluster_id|distance|
+|---|---|------|----------|--------|
+|  f|  d|  0.67|         0| 0.329|
+|  f|  g|  0.34|         0| 0.659|
+|  b|  c|  0.56|8589934592| 0.439|
+|  g|  h|  0.99|         0|0.010|
+|  a|  b|   0.4|8589934592|0.6|
+|  h|  i|   0.5|         0|0.5|
+|  h|  j|   0.8|         0| 0.199|
+|  d|  e|  0.84|         0| 0.160|
+|  e|  f|  0.65|         0|0.35|
+
 
 
     output spark dataframe:
@@ -357,7 +399,7 @@ def cluster_avg_edge_betweenness(
 
     psrc = src
     pdst = dst
-    pdistance = distance
+    pdistance = distance_colname
 
     @pandas_udf(
         StructType(
@@ -368,13 +410,11 @@ def cluster_avg_edge_betweenness(
         ),
         functionType=PandasUDFType.GROUPED_MAP,
     )
-    def avg_eb(pdf):
+    def avg_eb(pdf: pd.DataFrame) -> pd.DataFrame:
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
-        edge_btwn = edge_betweenness_centrality(
-            nxGraph, normalized=True
-        )
+        edge_btwn = edge_betweenness_centrality(nxGraph, normalized=True)
 
         if len(edge_btwn) > 0:
             aeb = round(sum(list(edge_btwn.values())) / len(edge_btwn), 3)
