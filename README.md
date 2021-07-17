@@ -5,7 +5,6 @@
 
 
 
-
 ![](https://github.com/moj-analytical-services/splink_graph/raw/master/notebooks/splink_graph300x297.png)
 
 ---
@@ -14,15 +13,23 @@
 `splink_graph` is a small graph utility library meant to be used in the Apache Spark environment, that works with graph data structures 
 such as the ones created from the outputs of data linking processes (candicate pair results) of ![splink](https://github.com/moj-analytical-services/splink) 
 
-The main aim of `splink_graph` is to offer a small set of functions that work on top of established graph packages like `graphframes` and `networkx`  , that can help with the process of graph analysis of the output of probabilistic data linkage tools.
-
-Calculations performed per cluster in a parallel manner thanks to the underlying help from `pyArrow`
+Calculations are performed per cluster/connected component/subgraph in a parallel manner thanks to the underlying help from `pyArrow`
 
 ---
-## How to Install : 
-For dependencies and other important info so you can run these functions without an issue please consult
-`INSTALL.md` on this repo
+## TL&DR :
 
+Graph Database OLAP solutions are a few and far between. 
+If you have spark data in a format that can be represented as a network/graph then with this package:
+
+- Graph-theoretic metrics can be obtained efficiently using an already existing spark infrastucture without the need for a graph OLAP solution
+- The results can be used as is for finding the needle (of interesting subgraphs) in the haystack (whole set of subgraphs)
+- Or one can augment the available graph-compatible data as part of preprocessing step before the data-ingestion phase in an OLTP graph database (such as AWS Neptune etc) 
+- Another use is to provide support for feature engineering from the subgraphs/clusters for supervised and unsupervised ML solutions
+
+## How to Install : 
+For dependencies and other important technical info so you can run these functions without an issue please consult
+`INSTALL.md` on this repo
+ 
 ## Functionality offered :
 
 For a primer on the terminology used please look at `TERMINOLOGY.md` file in this repo
@@ -36,7 +43,7 @@ The output is a row of one or more metrics per cluster
 
 Cluster metrics currently offered: 
 
-- diameter (largest shortest distance in a cluster)
+- diameter (largest shortest distance between nodes in a cluster)
 - transitivity (or Global Clustering Coefficient in the related literature)
 - cluster triangle clustering coeff (or Local Clustering Coefficient in the related literature)
 - cluster square clustering coeff (useful for bipartite networks)
@@ -47,14 +54,14 @@ Cluster metrics currently offered:
 - cluster avg edge betweenness
 - cluster weisfeiler lehman graphhash (in order to quickly test for graph isomorphisms)
 
-Cluster metrics are really helpful at finding the needle (of for example clusters with possible linking errors) in the 
-haystack (whole set of clusters after the data linking process)
+Cluster metrics are really helpful at finding the needles (of for example clusters with possible linking errors) in the 
+haystack (whole set of clusters after the data linking process).
 
 ---
 
 ####  Node metrics
 
-Node metrics  have as an input a spark edgelist dataframe that also includes the component_id (cluster_id) where the edge is in.
+Node metrics  have as an input a spark edgelist dataframe that also includes the component_id (cluster_id) where the edge belongs.
 The output is a row of one or more metrics per node
 
 Node metrics curretnly offered: 
@@ -66,7 +73,7 @@ Node metrics curretnly offered:
 
 ####  Edge metrics
 
-Edge metrics  have as an input a spark edgelist dataframe that also includes the component_id (cluster_id) where the edge is in.
+Edge metrics  have as an input a spark edgelist dataframe that also includes the component_id (cluster_id) where the edge belongs.
 The output is a row of one or more metrics per edge
 
 Edge metrics curretnly offered: 
@@ -84,3 +91,4 @@ Feel free to contribute by
 
  * Forking the repository to suggest a change, and/or
  * Starting an issue.
+ * Want a new metric implemented? Open an issue and ask. Probably it can be.

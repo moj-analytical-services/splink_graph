@@ -1,8 +1,5 @@
 from pyspark.sql import Row
-from splink_graph.node_metrics import (
-    eigencentrality,
-    harmoniccentrality
-)
+from splink_graph.node_metrics import eigencentrality, harmoniccentrality
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal

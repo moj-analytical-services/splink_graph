@@ -19,22 +19,34 @@ from networkx.algorithms.centrality import (
 
 
 def eigencentrality(
-    sparkdf, src="src", dst="dst", distance_colname="distance", cluster_id_colname="cluster_id"
+    sparkdf,
+    src="src",
+    dst="dst",
+    distance_colname="distance",
+    cluster_id_colname="cluster_id",
 ):
 
-    """
+    """    
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        distance_colname: distance column name
+        cluster_id_colname: Graphframes-created connected components created cluster_id
+        
+    Returns:
+        node_id:
+        eigen_centrality: eigenvector centrality of cluster cluster_id
     
 Eigenvector Centrality is an algorithm that measures the transitive influence or connectivity of nodes.
 Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality: 
 A Family of Measures. 
 It was the first of the centrality measures that considered the transitive importance of a node in a graph, 
 rather than only considering its direct importance. 
-
-
 Relationships to high-scoring nodes contribute more to the score of a node than connections to low-scoring nodes. 
 A high score means that a node is connected to other nodes that have high scores. 
 
-input spark dataframe:
+example input spark dataframe
 
 
 |src|dst|weight|cluster_id|distance|
@@ -50,7 +62,7 @@ input spark dataframe:
 |  e|  f|  0.65|         0|0.35|
 
 
-output spark dataframe:    
+example output spark dataframe    
     
 
 |node|   eigen_centrality|
@@ -81,14 +93,16 @@ output spark dataframe:
     pdistance = distance_colname
 
     @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
-    def eigenc(pdf:pd.DataFrame)->pd.DataFrame:
+    def eigenc(pdf: pd.DataFrame) -> pd.DataFrame:
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         ec = eigenvector_centrality(nxGraph)
         return (
             pd.DataFrame.from_dict(ec, orient="index", columns=["eigen_centrality"])
             .reset_index()
-            .rename(columns={"index": "node_id", "eigen_centrality": "eigen_centrality"})
+            .rename(
+                columns={"index": "node_id", "eigen_centrality": "eigen_centrality"}
+            )
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(eigenc)
@@ -96,11 +110,25 @@ output spark dataframe:
 
 
 def harmoniccentrality(
-    sparkdf, src="src", dst="dst", distance_colname="distance", cluster_id_colname="cluster_id"
+    sparkdf,
+    src="src",
+    dst="dst",
+    distance_colname="distance",
+    cluster_id_colname="cluster_id",
 ):
 
     """
-
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        distance_colname: distance column name
+        cluster_id_colname: Graphframes-created connected components created cluster_id
+        
+    Returns:
+        node_id:
+        harmonic_centrality: Harmonic centrality of cluster cluster_id
+        
 Harmonic centrality (also known as valued centrality) is a variant of closeness centrality, that was invented 
 to solve the problem the original formula had when dealing with unconnected graphs.
 Harmonic centrality was proposed by Marchiori and Latora  while trying to come up with a sensible notion of "average shortest path".
@@ -153,7 +181,7 @@ output spark dataframe:
     pdistance = distance_colname
 
     @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
-    def harmc(pdf:pd.DataFrame)->pd.DataFrame:
+    def harmc(pdf: pd.DataFrame) -> pd.DataFrame:
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         hc = harmonic_centrality(nxGraph)
@@ -161,7 +189,10 @@ output spark dataframe:
             pd.DataFrame.from_dict(hc, orient="index", columns=["harmonic_centrality"])
             .reset_index()
             .rename(
-                columns={"index": "node_id", "harmonic_centrality": "harmonic_centrality",}
+                columns={
+                    "index": "node_id",
+                    "harmonic_centrality": "harmonic_centrality",
+                }
             )
         )
 
