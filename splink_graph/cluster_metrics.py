@@ -27,7 +27,7 @@ import pandas as pd
 import numpy as np
 from splink_graph.utils import _laplacian_spectrum
 
-# setup to work around with pandas udf
+# Read on how to setup spark to work around with pandas udf:
 # see answers on
 # https://stackoverflow.com/questions/58458415/pandas-scalar-udf-failing-illegalargumentexception
 
@@ -271,7 +271,7 @@ def cluster_connectivity(
     return out
 
 
-def cluster_modularity(
+def cluster_eb_modularity(
     sparkdf,
     src="src",
     dst="dst",
@@ -329,7 +329,7 @@ def cluster_modularity(
         ),
         functionType=PandasUDFType.GROUPED_MAP,
     )
-    def cluster_eb_modularity(pdf: pd.DataFrame) -> pd.DataFrame:
+    def cluster_eb_m(pdf: pd.DataFrame) -> pd.DataFrame:
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
@@ -362,7 +362,97 @@ def cluster_modularity(
             [[co] + [co_eb_mod]], columns=["cluster_id", "cluster_eb_modularity",],
         )
 
-    out = sparkdf.groupby(cluster_id_colname).apply(cluster_eb_modularity)
+    out = sparkdf.groupby(cluster_id_colname).apply(cluster_eb_m)
+
+    return out
+
+
+
+def cluster_lpg_modularity(
+    sparkdf,
+    src="src",
+    dst="dst",
+    distance_colname="distance",
+    cluster_id_colname="cluster_id",
+):
+    """    
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        distance_colname: column name where edge distance (1-weight) is available
+        cluster_id_colname: column that contains Graphframes-created connected components created cluster_id
+        
+    Returns:
+        cluster_id: connected components created cluster_id
+        cluster_lpg_modularity: modularity for cluster_id if it partitioned into 2 parts based on label propagation
+        
+        
+    example input spark dataframe
+
+
+|src|dst|weight|cluster_id|distance|
+|---|---|------|----------|--------|
+|  f|  d|  0.67|         0| 0.329|
+|  f|  g|  0.34|         0| 0.659|
+|  b|  c|  0.56|8589934592| 0.439|
+|  g|  h|  0.99|         0|0.010|
+|  a|  b|   0.4|8589934592|0.6|
+|  h|  i|   0.5|         0|0.5|
+|  h|  j|   0.8|         0| 0.199|
+|  d|  e|  0.84|         0| 0.160|
+|  e|  f|  0.65|         0|0.35|
+
+
+    example output spark dataframe
+    
+|cluster_id|cluster_lpg_modularity|
+|----------|----------------|
+|         0| 0.400|
+|8589934592| -0.04|
+
+    """
+
+    psrc = src
+    pdst = dst
+    pdistance = distance_colname
+
+    @pandas_udf(
+        StructType(
+            [
+                StructField("cluster_id", LongType()),
+                StructField("cluster_lpg_modularity", FloatType()),
+            ]
+        ),
+        functionType=PandasUDFType.GROUPED_MAP,
+    )
+    def cluster_lpg_m(pdf: pd.DataFrame) -> pd.DataFrame:
+
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+
+        ## TODO: document this code
+        # this is a method that calculates the modularity of a cluster if partitioned into 2 parts
+        # where the split is happening based on label propagation clustering.
+
+        # if modularity is negative :
+        #      that means that the split just leaves singleton nodes or something like that.
+        #      basically the cluster is of no interest
+        # if modularity is 0 or very close to 0 :
+        #      its a cluster of well connected nodes so... nothing to see here really.
+        # if modularity is around 0.3+ then :
+        #      its a cluster of possible interest
+
+        gn= list(nx_comm.label_propagation_communities(nxGraph))
+
+        co = pdf[cluster_id_colname].iloc[0]  # access component id
+        co_lpg_mod =  nx_comm.modularity(nxGraph, gn)
+
+        return pd.DataFrame(
+            [[co] + [co_lpg_mod]], columns=["cluster_id", "cluster_lpg_modularity",],
+        )
+
+    out = sparkdf.groupby(cluster_id_colname).apply(cluster_lpg_m)
 
     return out
 

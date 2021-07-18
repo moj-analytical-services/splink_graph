@@ -87,7 +87,7 @@ Edge metrics curretnly offered:
 
 - [x] cluster modularity based on partitions created by edge-betweenness
 - [ ] cluster modularity based on partitions created by spectral cut
-- [ ] cluster modularity based on partitions created by label propagation
+- [x] cluster modularity based on partitions created by label propagation
 - [ ] Node2Vec node embedding functionality per cluster
 - [ ] Node2Vec edge embedding functionality per cluster
 
