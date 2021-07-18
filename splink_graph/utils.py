@@ -48,12 +48,9 @@ def _assert_columns(sparkdf, columns):
     have = set(df.columns)
     need = set(columns)
     if not need.issubset(have):
-        raise ValueError("Missing columns in DataFrame: %s" % (", ".join(need.difference(have))))
-
-
-
-
-
+        raise ValueError(
+            "Missing columns in DataFrame: %s" % (", ".join(need.difference(have)))
+        )
 
 
 def _nodearray_from_edge_df(

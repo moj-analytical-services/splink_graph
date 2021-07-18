@@ -180,7 +180,7 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
 def cluster_connectivity(
     sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
 ):
-    """    
+    """outputs connectivity metrics per cluster_id 
     
     Args:
         sparkdf: imput edgelist Spark DataFrame
@@ -195,6 +195,8 @@ def cluster_connectivity(
         edge_conn: Edge connectivity measures the minimal number of edges that can be removed to disconnect the graph.
         algebraic connectivity:
         efficiency: The global efficiency of a grpah is the average inverse distance between all pairs of nodes in the graph.
+
+
 
 
 
@@ -270,7 +272,11 @@ def cluster_connectivity(
 
 
 def cluster_modularity(
-    sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
+    sparkdf,
+    src="src",
+    dst="dst",
+    distance_colname="distance",
+    cluster_id_colname="cluster_id",
 ):
     """    
     Args:
@@ -285,7 +291,7 @@ def cluster_modularity(
         comp_eb_modularity: modularity for cluster_id if it partitioned into 2 parts at the point where the highest edge betweenness exists
         
         
-    input spark dataframe:
+    example input spark dataframe
 
 
 |src|dst|weight|cluster_id|distance|
@@ -301,20 +307,24 @@ def cluster_modularity(
 |  e|  f|  0.65|         0|0.35|
 
 
-
-    output spark dataframe:
+    example output spark dataframe
+    
+|cluster_id|comp_eb_modularity|
+|----------|----------------|
+|         0| 0.400|
+|8589934592| -0.04|
 
     """
 
     psrc = src
     pdst = dst
-    pdistance = distance
+    pdistance = distance_colname
 
     @pandas_udf(
         StructType(
             [
                 StructField("cluster_id", LongType()),
-                StructField("comp_eb_modularity", FloatType()),
+                StructField("cluster_eb_modularity", FloatType()),
             ]
         ),
         functionType=PandasUDFType.GROUPED_MAP,
@@ -333,7 +343,7 @@ def cluster_modularity(
         #      basically the cluster is of no interest
         # if modularity is 0 or very close to 0 :
         #      its a cluster of well connected nodes so... nothing to see here really.
-        # if modularity is around 0.4+ then :
+        # if modularity is around 0.3+ then :
         #      its a cluster of possible interest
 
         def largest_edge_betweenness(G):
@@ -345,7 +355,7 @@ def cluster_modularity(
         comp = girvan_newman(nxGraph, most_valuable_edge=largest_edge_betweenness)
         gn = tuple(sorted(c) for c in next(comp))
 
-        co = pdf[cluster_id].iloc[0]  # access component id
+        co = pdf[cluster_id_colname].iloc[0]  # access component id
         co_eb_mod = nx_comm.modularity(nxGraph, gn)
 
         return pd.DataFrame(
