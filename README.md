@@ -24,7 +24,7 @@ If you have spark data in a format that can be represented as a network/graph th
 - Graph-theoretic metrics can be obtained efficiently using an already existing spark infrastucture without the need for a graph OLAP solution
 - The results can be used as is for finding the needle (of interesting subgraphs) in the haystack (whole set of subgraphs)
 - Or one can augment the available graph-compatible data as part of preprocessing step before the data-ingestion phase in an OLTP graph database (such as AWS Neptune etc) 
-- Another use is to provide support for feature engineering from the subgraphs/clusters for supervised and unsupervised ML solutions
+- Another use is to provide support for feature engineering from the subgraphs/clusters for supervised and unsupervised ML downstream uses.
 
 ## How to Install : 
 For dependencies and other important technical info so you can run these functions without an issue please consult
@@ -83,12 +83,24 @@ Edge metrics curretnly offered:
 
 
 ---
+## Functionality coming soon
+
+- [x] cluster modularity based on partitions created by edge-betweenness
+- [ ] cluster modularity based on partitions created by spectral cut
+- [ ] cluster modularity based on partitions created by label propagation
+- [ ] Node2Vec node embedding functionality per cluster
+- [ ] Node2Vec edge embedding functionality per cluster
+
+
+For upcoming functionality further down the line please consult the `TODO.md` file
 
 
 ## Contributing
 
 Feel free to contribute by 
 
- * Forking the repository to suggest a change, and/or
  * Starting an issue.
+ 
+ * Forking the repository to suggest a change, and/or
+
  * Want a new metric implemented? Open an issue and ask. Probably it can be.
