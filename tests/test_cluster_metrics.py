@@ -1,6 +1,11 @@
 from pyspark.sql import Row
 
-from splink_graph.cluster_metrics import cluster_main_stats, cluster_basic_stats
+from splink_graph.cluster_metrics import (
+    cluster_main_stats,
+    cluster_basic_stats,
+    cluster_modularity,
+    cluster_avg_edge_betweenness
+)
 
 import pytest
 import pandas as pd
@@ -92,3 +97,174 @@ def test_cluster_main_stats_customcolname2(spark):
 
     assert df_result["diameter"][0] == 2
     assert df_result["diameter"][1] == 2
+
+
+def test_cluster_modularity_neg(spark):
+    # Create an Edge DataFrame with on "src" and "dst" column. so 2 nodes one edge
+    # when cut the nodes are singletons. modularity should be negative
+    data_list = [
+        {"src": "a", "dst": "b", "distance": 0.4, "cluster_id": 1},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_modularity(
+        e_df,
+        src="src",
+        dst="dst",
+        distance_colname="distance",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert df_result["cluster_eb_modularity"][0] < 0
+
+
+def test_cluster_modularity_pos_large(spark):
+    # Create an Edge DataFrame with on "src" and "dst" column. so 7 nodes connected one after the other
+    # modularity should be relatively large here (>0.30) .all edges are bridges
+    data_list = [
+        {"src": "a", "dst": "b", "distance": 0.8, "cluster_id": 1},
+        {"src": "b", "dst": "c", "distance": 0.86, "cluster_id": 1},
+        {"src": "c", "dst": "d", "distance": 0.8, "cluster_id": 1},
+        {"src": "d", "dst": "e", "distance": 0.8, "cluster_id": 1},
+        {"src": "e", "dst": "f", "distance": 0.8, "cluster_id": 1},
+        {"src": "f", "dst": "g", "distance": 0.8, "cluster_id": 1},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_modularity(
+        e_df,
+        src="src",
+        dst="dst",
+        distance_colname="distance",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert df_result["cluster_eb_modularity"][0] > 0.30
+
+
+def test_cluster_modularity_pos_small(spark):
+    # Create an Edge DataFrame with on "src" and "dst" column. so 6 nodes each connected to all others
+    # modularity should be quite small here
+    data_list = [
+        {"src": "a", "dst": "b", "distance": 0.94, "cluster_id": 1},
+        {"src": "b", "dst": "c", "distance": 0.96, "cluster_id": 1},
+        {"src": "c", "dst": "d", "distance": 0.92, "cluster_id": 1},
+        {"src": "a", "dst": "d", "distance": 0.98, "cluster_id": 1},
+        {"src": "a", "dst": "c", "distance": 0.94, "cluster_id": 1},
+        {"src": "b", "dst": "d", "distance": 0.92, "cluster_id": 1},
+        {"src": "d", "dst": "e", "distance": 0.98, "cluster_id": 1},
+        {"src": "d", "dst": "f", "distance": 0.94, "cluster_id": 1},
+        {"src": "e", "dst": "f", "distance": 0.92, "cluster_id": 1},
+        {"src": "a", "dst": "e", "distance": 0.98, "cluster_id": 1},
+        {"src": "a", "dst": "f", "distance": 0.94, "cluster_id": 1},
+        {"src": "b", "dst": "f", "distance": 0.92, "cluster_id": 1},
+        {"src": "c", "dst": "e", "distance": 0.98, "cluster_id": 1},
+        {"src": "c", "dst": "f", "distance": 0.94, "cluster_id": 1},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_modularity(
+        e_df,
+        src="src",
+        dst="dst",
+        distance_colname="distance",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert abs(df_result["cluster_eb_modularity"][0] - 0.01)< 0.1
+
+def test_cluster_avg_cluster_eb(spark):
+    # Create an Edge DataFrame with on "src" and "dst" column.
+    data_list = [
+        {"src": "a", "dst": "b", "distance": 0.8, "cluster_id": 1},
+        {"src": "b", "dst": "c", "distance": 0.86, "cluster_id": 1},
+        {"src": "c", "dst": "d", "distance": 0.8, "cluster_id": 1},
+        {"src": "d", "dst": "e", "distance": 0.8, "cluster_id": 1},
+        {"src": "e", "dst": "f", "distance": 0.8, "cluster_id": 1},
+        {"src": "f", "dst": "g", "distance": 0.8, "cluster_id": 1},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_avg_edge_betweenness(
+        e_df,
+        src="src",
+        dst="dst",
+        distance_colname="distance",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert df_result["avg_cluster_eb"][0] > 0.4
+    
+    
+def test_cluster_avg_cluster_eb_completegraph(spark):
+    # Create an Edge DataFrame with on "src" and "dst" column.
+    data_list = [
+        {"src": "a", "dst": "b", "distance": 0.94, "cluster_id": 1},
+        {"src": "b", "dst": "c", "distance": 0.96, "cluster_id": 1},
+        {"src": "c", "dst": "d", "distance": 0.92, "cluster_id": 1},
+        {"src": "a", "dst": "d", "distance": 0.98, "cluster_id": 1},
+        {"src": "a", "dst": "c", "distance": 0.94, "cluster_id": 1},
+        {"src": "b", "dst": "d", "distance": 0.92, "cluster_id": 1},
+        {"src": "d", "dst": "e", "distance": 0.98, "cluster_id": 1},
+        {"src": "d", "dst": "f", "distance": 0.94, "cluster_id": 1},
+        {"src": "e", "dst": "f", "distance": 0.92, "cluster_id": 1},
+        {"src": "a", "dst": "e", "distance": 0.98, "cluster_id": 1},
+        {"src": "a", "dst": "f", "distance": 0.94, "cluster_id": 1},
+        {"src": "b", "dst": "f", "distance": 0.92, "cluster_id": 1},
+        {"src": "c", "dst": "e", "distance": 0.98, "cluster_id": 1},
+        {"src": "c", "dst": "f", "distance": 0.94, "cluster_id": 1},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_avg_edge_betweenness(
+        e_df,
+        src="src",
+        dst="dst",
+        distance_colname="distance",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert df_result["avg_cluster_eb"][0] == pytest.approx(0.076)
+    
+def test_cluster_avg_cluster_eb_0_156_othergraph(spark):
+    # Create an Edge DataFrame with on "src" and "dst" column.
+    data_list = [
+        {"src": "a", "dst": "b", "distance": 0.94, "cluster_id": 1},
+        {"src": "b", "dst": "c", "distance": 0.96, "cluster_id": 1},
+        {"src": "c", "dst": "d", "distance": 0.92, "cluster_id": 1},
+        {"src": "b", "dst": "d", "distance": 0.92, "cluster_id": 1},
+        {"src": "d", "dst": "e", "distance": 0.98, "cluster_id": 1},
+        {"src": "e", "dst": "f", "distance": 0.92, "cluster_id": 1},
+        {"src": "a", "dst": "e", "distance": 0.98, "cluster_id": 1},
+        {"src": "a", "dst": "f", "distance": 0.94, "cluster_id": 1},
+        {"src": "c", "dst": "f", "distance": 0.94, "cluster_id": 1},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_avg_edge_betweenness(
+        e_df,
+        src="src",
+        dst="dst",
+        distance_colname="distance",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert df_result["avg_cluster_eb"][0] == pytest.approx(0.156)
+    
+def test_cluster_avg_cluster_eb_one_edge(spark):
+    # Create an Edge DataFrame with on "src" and "dst" column.
+    data_list = [
+        {"src": "a", "dst": "b", "distance": 0.8, "cluster_id": 1},
+
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_avg_edge_betweenness(
+        e_df,
+        src="src",
+        dst="dst",
+        distance_colname="distance",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert df_result["avg_cluster_eb"][0] == pytest.approx(1.00)
