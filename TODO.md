@@ -11,5 +11,8 @@
 
 - Feather node embedding framework
 
-
 - FeatherG graph embedding framework
+
+- node-embeddings of subgraphs/clusters
+
+- full subgraph embeddings
