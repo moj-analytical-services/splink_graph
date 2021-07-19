@@ -2,6 +2,7 @@ from pyspark.sql import Row
 from splink_graph.utils import _graphharmoniser, _assert_columns
 import pytest
 import pandas as pd
+import networkx as nx
 import pyspark.sql.functions as f
 
 

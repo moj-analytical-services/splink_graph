@@ -1,15 +1,17 @@
 ## Functionality coming soon
 
-- cluster modularity based on partitions created by spectral cut
+- [ ] cluster modularity based on partitions created by spectral cut
 
-- cluster modularity based on partitions created by label propagation
+- [x] cluster modularity based on partitions created by label propagation
 
-- Node2Vec node embedding
+- [ ] Node2Vec node embedding
 
-- Edge2Vec edge embedding
+- [ ] Edge2Vec edge embedding
 
+- [ ] Feather node embedding framework
 
-- Feather node embedding framework
+- [ ] FeatherG graph embedding framework
 
+- [ ] more node-embeddings of subgraphs/clusters
 
-- FeatherG graph embedding framework
+- [ ] more full subgraph embeddings

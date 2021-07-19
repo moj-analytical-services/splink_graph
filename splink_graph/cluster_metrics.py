@@ -177,8 +177,8 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
     return out
 
 
-def cluster_connectivity(
-    sparkdf, src="src", dst="dst", distance="distance", cluster_id_colname="cluster_id"
+def cluster_connectivity_stats(
+    sparkdf, src="src", dst="dst", distance_colname="distance", cluster_id_colname="cluster_id"
 ):
     """outputs connectivity metrics per cluster_id 
     
@@ -227,7 +227,7 @@ def cluster_connectivity(
 
     psrc = src
     pdst = dst
-    pdistance = distance
+    pdistance = distance_colname
 
     @pandas_udf(
         StructType(
@@ -367,7 +367,6 @@ def cluster_eb_modularity(
     return out
 
 
-
 def cluster_lpg_modularity(
     sparkdf,
     src="src",
@@ -443,10 +442,10 @@ def cluster_lpg_modularity(
         # if modularity is around 0.3+ then :
         #      its a cluster of possible interest
 
-        gn= list(nx_comm.label_propagation_communities(nxGraph))
+        gn = list(nx_comm.label_propagation_communities(nxGraph))
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
-        co_lpg_mod =  nx_comm.modularity(nxGraph, gn)
+        co_lpg_mod = nx_comm.modularity(nxGraph, gn)
 
         return pd.DataFrame(
             [[co] + [co_lpg_mod]], columns=["cluster_id", "cluster_lpg_modularity",],
