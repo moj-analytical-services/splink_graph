@@ -88,7 +88,7 @@ Edge metrics curretnly offered:
 - [x] cluster modularity based on partitions created by edge-betweenness
 - [ ] cluster modularity based on partitions created by spectral cut
 - [x] cluster modularity based on partitions created by label propagation
-- [ ] node-embeddings of subgraphs/clusters
+- [ ] later down the line : shallow embeddings of subgraphs/clusters
  
 
 For upcoming functionality further down the line please consult the `TODO.md` file
