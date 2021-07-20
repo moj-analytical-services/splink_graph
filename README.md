@@ -85,10 +85,11 @@ Edge metrics curretnly offered:
 ---
 ## Functionality coming soon
 
+- [x] release for MVP to be used on AWS glue and demos
 - [x] cluster modularity based on partitions created by edge-betweenness
 - [ ] cluster modularity based on partitions created by spectral cut
 - [x] cluster modularity based on partitions created by label propagation
-- [ ] later down the line : shallow embeddings of subgraphs/clusters
+- [ ] shallow embeddings of subgraphs/clusters (WIP)
  
 
 For upcoming functionality further down the line please consult the `TODO.md` file
