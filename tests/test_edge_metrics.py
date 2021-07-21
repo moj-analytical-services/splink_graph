@@ -74,7 +74,7 @@ def test_edgebetweeness_simple_customcolname2(spark):
     e_df = e_df.withColumn("weight", 1.0 - f.col("distance"))
 
     df_result = edgebetweeness(
-        e_df, src="id_l", dst="id_r", cluster_id_col="estimated_id"
+        e_df, src="id_l", dst="id_r", cluster_id_colname="estimated_id"
     ).toPandas()
 
     assert df_result["eb"].values == pytest.approx(0.666667, 0.1)
@@ -125,7 +125,7 @@ def test_bridges_customcolname(spark):
     e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
 
     assert (
-        bridge_edges(e2_df, src="id_l", dst="id_r", cluster_id_col="estimated_group")
+        bridge_edges(e2_df, src="id_l", dst="id_r", cluster_id_colname="estimated_group")
         .toPandas()["id_l"]
         .count()
         == 6
@@ -153,7 +153,7 @@ def test_bridges_customcolname2(spark):
     e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
 
     assert (
-        bridge_edges(e2_df, src="id_l", dst="id_r", cluster_id_col="estimated_group")
+        bridge_edges(e2_df, src="id_l", dst="id_r", cluster_id_colname="estimated_group")
         .toPandas()["id_l"]
         .count()
         == 6

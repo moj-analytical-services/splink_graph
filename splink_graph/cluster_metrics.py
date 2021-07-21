@@ -36,7 +36,7 @@ def cluster_basic_stats(
     df, src="src", dst="dst", cluster_id_colname="cluster_id", weight_colname="weight"
 ):
 
-    """
+    """show nodecount , edgecount, density and enumerate nodes per cluster/conn. components subgraph
     
 example input spark dataframe:
 
@@ -84,13 +84,13 @@ example output spark dataframe:
     output = output.withColumn(
         "density", f.round(f.col("edgecount") / f.col("maxNumberOfEdgesundir"), 3)
     ).drop("sources", "destinations", "maxNumberOfEdgesundir")
+    output = output.withColumnRenamed(cluster_id_colname,"cluster_id")
 
     return output
 
 
 def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
-    """    
-    calculate diameter / transitivity(GCC) / triangle clustering coefficient LCC / square clustering coeff
+    """calculate diameter / transitivity(GCC) / triangle clustering coefficient LCC / square clustering coeff
     and the weisfeiler-lehman graph hash of a cluster
     
     
