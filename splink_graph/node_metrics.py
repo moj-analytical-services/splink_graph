@@ -22,7 +22,6 @@ def eigencentrality(
     sparkdf,
     src="src",
     dst="dst",
-    distance_colname="distance",
     cluster_id_colname="cluster_id",
 ):
 
@@ -90,12 +89,12 @@ example output spark dataframe
 
     psrc = src
     pdst = dst
-    pdistance = distance_colname
+  
 
     @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
     def eigenc(pdf: pd.DataFrame) -> pd.DataFrame:
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         ec = eigenvector_centrality(nxGraph)
         return (
             pd.DataFrame.from_dict(ec, orient="index", columns=["eigen_centrality"])
@@ -113,7 +112,6 @@ def harmoniccentrality(
     sparkdf,
     src="src",
     dst="dst",
-    distance_colname="distance",
     cluster_id_colname="cluster_id",
 ):
 
@@ -178,12 +176,12 @@ output spark dataframe:
 
     psrc = src
     pdst = dst
-    pdistance = distance_colname
+  
 
     @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
     def harmc(pdf: pd.DataFrame) -> pd.DataFrame:
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         hc = harmonic_centrality(nxGraph)
         return (
             pd.DataFrame.from_dict(hc, orient="index", columns=["harmonic_centrality"])
