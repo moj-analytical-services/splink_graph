@@ -1,14 +1,4 @@
 import networkx as nx
-import numpy as np
-import pyspark
-from pyspark.context import SparkContext, SparkConf
-from pyspark.sql import SparkSession
-from pyspark.sql.window import Window
-from pyspark.sql.types import *
-import pyspark.sql.functions as f
-from pyspark.sql.functions import when
-from pyspark.sql.types import LongType, StringType, FloatType, DoubleType
-
 import pyspark
 import warnings
 from pyspark.sql.session import SparkSession
@@ -17,10 +7,15 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 import pyspark.sql.functions as f
 import networkx as nx
-from graphframes import GraphFrame
+
 
 
 def _find_graphframes_jars(spark: SparkSession):
+    try:
+        from graphframes import GraphFrame
+    except ImportError:
+        raise ImportError('You need to install graphframes from PyPI i.e.  pip install graphframes==0.6.0 ')
+
 
     sparkjars_conf = spark.conf.get("spark.jars")
 
