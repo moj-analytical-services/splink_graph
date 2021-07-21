@@ -10,6 +10,7 @@ import networkx as nx
 from splink_graph.node_metrics import eigencentrality
 from graphframes import GraphFrame
 
+
 def _find_graphframes_jars(spark: SparkSession):
     try:
         from graphframes import GraphFrame

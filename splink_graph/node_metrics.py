@@ -19,10 +19,7 @@ from networkx.algorithms.centrality import (
 
 
 def eigencentrality(
-    sparkdf,
-    src="src",
-    dst="dst",
-    cluster_id_colname="cluster_id",
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
 ):
 
     """    
@@ -89,7 +86,6 @@ example output spark dataframe
 
     psrc = src
     pdst = dst
-  
 
     @pandas_udf(ecschema, PandasUDFType.GROUPED_MAP)
     def eigenc(pdf: pd.DataFrame) -> pd.DataFrame:
@@ -109,10 +105,7 @@ example output spark dataframe
 
 
 def harmoniccentrality(
-    sparkdf,
-    src="src",
-    dst="dst",
-    cluster_id_colname="cluster_id",
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
 ):
 
     """
@@ -176,7 +169,6 @@ output spark dataframe:
 
     psrc = src
     pdst = dst
-  
 
     @pandas_udf(hcschema, PandasUDFType.GROUPED_MAP)
     def harmc(pdf: pd.DataFrame) -> pd.DataFrame:
