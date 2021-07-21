@@ -17,7 +17,7 @@ from networkx.algorithms.centrality import edge_betweenness_centrality
 
 
 def edgebetweeness(
-    sparkdf, src="src", dst="dst", distance_col="distance", cluster_id_col="cluster_id"
+    sparkdf, src="src", dst="dst", distance_col="distance", cluster_id_colname="cluster_id"
 ):
     """return edge betweenness
     
@@ -54,8 +54,8 @@ def edgebetweeness(
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=pdistance)
-        currentcomp = pdf[cluster_id_col].iloc[0]  # access current component
-        compsize = pdf[cluster_id_col].size  # how many nodes does this cluster have?
+        currentcomp = pdf[cluster_id_colname].iloc[0]  # access current component
+        compsize = pdf[cluster_id_colname].size  # how many nodes does this cluster have?
 
         for srcdst, v in eb.items():
             # unpack (src,dst) tuple key
@@ -70,7 +70,7 @@ def edgebetweeness(
             columns=["src", "dst", "eb", "cluster_id"],
         )
 
-    out = sparkdf.groupby(cluster_id_col).apply(ebdf)
+    out = sparkdf.groupby(cluster_id_colname).apply(ebdf)
     return out
 
 
@@ -78,9 +78,9 @@ def bridge_edges(
     sparkdf,
     src="src",
     dst="dst",
-    weight_col="weight",
-    distance_col="distance",
-    cluster_id_col="cluster_id",
+    weight_colname="weight",
+    distance_colname="distance",
+    cluster_id_colname="cluster_id",
 ):
 
     """return edges that are bridges
@@ -104,15 +104,15 @@ example input spark dataframe
 
 |src|dst|weight|cluster_id|distance|
 +---|---|------|----------|--------|
-|  f|  d|  0.67|         0|0.329|
-|  f|  g|  0.34|         0|0.659|
-|  b|  c|  0.56|8589934592| 0.439|
-|  g|  h|  0.99|         0|0.010|
-|  a|  b|   0.4|8589934592|0.6|
-|  h|  i|   0.5|         0|0.5|
-|  h|  j|   0.8|         0| 0.199|
-|  d|  e|  0.84|         0| 0.160|
-|  e|  f|  0.65|         0|0.35|
+|  f|  d|  0.67|         0|0.329   |
+|  f|  g|  0.34|         0|0.659   |
+|  b|  c|  0.56|8589934592| 0.439  |
+|  g|  h|  0.99|         0|0.010   |
+|  a|  b|   0.4|8589934592|0.6     |
+|  h|  i|   0.5|         0|0.5     |
+|  h|  j|   0.8|         0| 0.199  |
+|  d|  e|  0.84|         0| 0.160  |
+|  e|  f|  0.65|         0|0.35    |
 
     
 example output spark dataframe
@@ -120,20 +120,19 @@ example output spark dataframe
 
 |src|dst|weight|cluster_id|distance|
 +---|---|------|----------|--------|
-|  b|  c|  0.56|8589934592|0.439|
-|  f|  g|  0.34|         0|0.659|
-|  g|  h|  0.99|         0|0.010|
-|  h|  i|   0.5|         0|0.5|
-|  h|  j|   0.8|         0|0.199|
-
+|  b|  c|  0.56|8589934592|0.439   |
+|  f|  g|  0.34|         0|0.659   |
+|  g|  h|  0.99|         0|0.010   |
+|  h|  i|   0.5|         0|0.5     |
+|  h|  j|   0.8|         0|0.199   |
 
 
     """
     psrc = src
     pdst = dst
-    pweight = weight_col
-    pdistance = distance_col
-    pcomponent = cluster_id_col
+    pweight = weight_colname
+    pdistance = distance_colname
+    pcomponent = cluster_id_colname
 
     bridgesoutSchema = StructType(
         [
@@ -157,5 +156,5 @@ example output spark dataframe
         return pd.merge(bpdf, pdf, how="inner", on=[psrc, pdst])
 
     indf = sparkdf.select(psrc, pdst, pweight, pdistance, pcomponent)
-    out = indf.groupby(cluster_id_col).apply(br_p_udf)
+    out = indf.groupby(cluster_id_colname).apply(br_p_udf)
     return out
