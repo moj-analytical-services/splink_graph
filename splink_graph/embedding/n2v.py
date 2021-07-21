@@ -26,4 +26,4 @@ def _node2vec_embedding(nxGraph, dimensions=64, walk_length=8):
     for n in nxGraph.nodes:
         embeddings.append(list(graph_nodes_emb_model.get_vector(n)))
 
-    return graph_nodes_emb
+    return embeddings
