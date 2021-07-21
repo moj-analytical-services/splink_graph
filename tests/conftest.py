@@ -7,7 +7,7 @@ from pyspark.sql import types
 import os
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def spark():
 
     conf = SparkConf()
@@ -31,7 +31,7 @@ def spark():
     yield spark
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def sparkwithgraphframes():
 
     conf = SparkConf()
@@ -57,3 +57,9 @@ def sparkwithgraphframes():
     SPARK_EXISTS = True
 
     yield sparkwithgraphframes
+    
+    
+
+@pytest.fixture(scope = 'function')
+def graphframes_tmpdir(tmpdir_factory):
+    return tmpdir_factory.mktemp('graphframes_tempdir')
