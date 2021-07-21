@@ -18,6 +18,7 @@ def tests(session, pyspark):
     session.install("numpy==1.19.5", "--no-deps")
     session.install("scipy==1.6.0", "--no-deps")
     session.install("node2vec==0.4.3")
+    session.install("graphframes==0.6.0")
 
     if pyspark == "2.4.5":
         session.install("pyarrow==0.14.1", "--no-deps")

@@ -8,7 +8,7 @@ from pyspark.sql.types import *
 import pyspark.sql.functions as f
 import networkx as nx
 from splink_graph.node_metrics import eigencentrality
-
+from graphframes import GraphFrame
 
 def _find_graphframes_jars(spark: SparkSession):
     try:
@@ -59,7 +59,7 @@ def sp_connected_components(
     g = GraphFrame(nodes_for_cc, edges_for_cc)
     cc = g.connectedComponents()
 
-    cc = cc.withColumnRenamed("component", "cluster_id").withColumnRenamed(
+    cc = cc.withColumnRenamed("component", cluster_id_colname).withColumnRenamed(
         "id", "node_id"
     )
 
