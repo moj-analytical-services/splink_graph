@@ -22,26 +22,26 @@ def eigencentrality(
     sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
 ):
 
-    """    
+    """
     Args:
         sparkdf: imput edgelist Spark DataFrame
         src: src column name
         dst: dst column name
         distance_colname: distance column name
         cluster_id_colname: Graphframes-created connected components created cluster_id
-        
+
     Returns:
         node_id:
         eigen_centrality: eigenvector centrality of cluster cluster_id
         cluster_id: cluster_id corresponding to the node_id
-    
+
 Eigenvector Centrality is an algorithm that measures the transitive influence or connectivity of nodes.
-Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality: 
-A Family of Measures. 
-It was the first of the centrality measures that considered the transitive importance of a node in a graph, 
-rather than only considering its direct importance. 
-Relationships to high-scoring nodes contribute more to the score of a node than connections to low-scoring nodes. 
-A high score means that a node is connected to other nodes that have high scores. 
+Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality:
+A Family of Measures.
+It was the first of the centrality measures that considered the transitive importance of a node in a graph,
+rather than only considering its direct importance.
+Relationships to high-scoring nodes contribute more to the score of a node than connections to low-scoring nodes.
+A high score means that a node is connected to other nodes that have high scores.
 
 example input spark dataframe
 
@@ -59,8 +59,8 @@ example input spark dataframe
 |  e|  f|  0.65|         0|0.35|
 
 
-example output spark dataframe    
-    
+example output spark dataframe
+
 
 |node|   eigen_centrality|cluster_id|
 |----|-------------------|----------|
@@ -75,14 +75,14 @@ example output spark dataframe
 |   j|0.12277029263709134|         0|
 |   e| 0.4584903903420785|         0|
 
-   
+
 
     """
     ecschema = StructType(
         [
             StructField("node_id", StringType()),
             StructField("eigen_centrality", DoubleType()),
-            StructField("cluster_id", LongType()),
+            StructField(cluster_id_colname, LongType()),
         ]
     )
 
@@ -101,7 +101,7 @@ example output spark dataframe
                 columns={"index": "node_id", "eigen_centrality": "eigen_centrality"}
             )
         )
-        
+
         cluster_id = pdf[cluster_id_colname][0]
         out_df[cluster_id_colname] = cluster_id
         return out_df
@@ -122,16 +122,16 @@ def harmoniccentrality(
         dst: dst column name
         distance_colname: distance column name
         cluster_id_colname: Graphframes-created connected components created cluster_id
-        
+
     Returns:
         node_id:
         harmonic_centrality: Harmonic centrality of cluster cluster_id
-        
-Harmonic centrality (also known as valued centrality) is a variant of closeness centrality, that was invented 
+
+Harmonic centrality (also known as valued centrality) is a variant of closeness centrality, that was invented
 to solve the problem the original formula had when dealing with unconnected graphs.
 Harmonic centrality was proposed by Marchiori and Latora  while trying to come up with a sensible notion of "average shortest path".
-They suggested a different way of calculating the average distance to that used in the Closeness Centrality algorithm. 
-Rather than summing the distances of a node to all other nodes, the harmonic centrality algorithm sums the inverse of those distances. 
+They suggested a different way of calculating the average distance to that used in the Closeness Centrality algorithm.
+Rather than summing the distances of a node to all other nodes, the harmonic centrality algorithm sums the inverse of those distances.
 This enables it deal with infinite values.
 
 
@@ -150,7 +150,7 @@ input spark dataframe:
 |  e|  f|  0.65|         0|0.35|
 
 output spark dataframe:
- 
+
 
 |node|harmonic_centrality|
 |----|-------------------|
