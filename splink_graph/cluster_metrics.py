@@ -84,7 +84,7 @@ example output spark dataframe:
     output = output.withColumn(
         "density", f.round(f.col("edgecount") / f.col("maxNumberOfEdgesundir"), 3)
     ).drop("sources", "destinations", "maxNumberOfEdgesundir")
-    output = output.withColumnRenamed(cluster_id_colname,"cluster_id")
+    output = output.withColumnRenamed(cluster_id_colname, "cluster_id")
 
     return output
 
@@ -178,7 +178,11 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
 
 
 def cluster_connectivity_stats(
-    sparkdf, src="src", dst="dst", distance_colname="distance", cluster_id_colname="cluster_id"
+    sparkdf,
+    src="src",
+    dst="dst",
+    distance_colname="distance",
+    cluster_id_colname="cluster_id",
 ):
     """outputs connectivity metrics per cluster_id 
     

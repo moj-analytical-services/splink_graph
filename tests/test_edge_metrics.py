@@ -125,7 +125,9 @@ def test_bridges_customcolname(spark):
     e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
 
     assert (
-        bridge_edges(e2_df, src="id_l", dst="id_r", cluster_id_colname="estimated_group")
+        bridge_edges(
+            e2_df, src="id_l", dst="id_r", cluster_id_colname="estimated_group"
+        )
         .toPandas()["id_l"]
         .count()
         == 6
@@ -153,7 +155,9 @@ def test_bridges_customcolname2(spark):
     e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
 
     assert (
-        bridge_edges(e2_df, src="id_l", dst="id_r", cluster_id_colname="estimated_group")
+        bridge_edges(
+            e2_df, src="id_l", dst="id_r", cluster_id_colname="estimated_group"
+        )
         .toPandas()["id_l"]
         .count()
         == 6

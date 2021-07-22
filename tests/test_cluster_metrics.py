@@ -6,7 +6,7 @@ from splink_graph.cluster_metrics import (
     cluster_eb_modularity,
     cluster_lpg_modularity,
     cluster_avg_edge_betweenness,
-    cluster_connectivity_stats
+    cluster_connectivity_stats,
 )
 
 import pytest
@@ -347,7 +347,6 @@ def test_cluster_lpg_modularity_pos_small(spark):
     ).toPandas()
 
     assert df_result["cluster_lpg_modularity"][0] == pytest.approx(0.0, 0.001)
-    
 
 
 def test_cluster_connectivity_stats_completegraph(spark):
@@ -383,12 +382,11 @@ def test_cluster_connectivity_stats_completegraph(spark):
     assert df_result["node_conn"][0] == 4
     assert df_result["edge_conn"][0] == 4
     assert df_result["algebraic_conn"][0] == 4
-    
 
-    
+
 def test_cluster_connectivity_stats_linegraph(spark):
     # Create an Edge DataFrame with on "src" and "dst" column. so 6 nodes each connected to all others
-   
+
     data_list = [
         {"src": "a", "dst": "b", "distance": 0.8, "cluster_id": 1},
         {"src": "b", "dst": "c", "distance": 0.86, "cluster_id": 1},
@@ -407,8 +405,7 @@ def test_cluster_connectivity_stats_linegraph(spark):
         cluster_id_colname="cluster_id",
     ).toPandas()
 
-    assert df_result["global_efficiency"][0] == pytest.approx(0.531 , 0.001)
+    assert df_result["global_efficiency"][0] == pytest.approx(0.531, 0.001)
     assert df_result["node_conn"][0] == 1
     assert df_result["edge_conn"][0] == 1
     assert df_result["algebraic_conn"][0] < 0.2
-    

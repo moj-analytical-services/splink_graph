@@ -1,6 +1,6 @@
 FROM mamonu/moj-spark-jovyan:baseenv
 
-RUN pip install pytest pytest-cov poetry coveralls numpy==1.19.5 pyarrow==0.14.1 networkx==2.5.1 scipy==1.6.0
+RUN pip install pytest pytest-cov pytest-order poetry coveralls numpy==1.19.5 pyarrow==0.14.1 networkx==2.5.1 scipy==1.6.0 graphframes==0.6.0
 
 ADD . /myfiles
 WORKDIR /myfiles

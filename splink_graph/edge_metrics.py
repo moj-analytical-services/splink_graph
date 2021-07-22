@@ -17,7 +17,11 @@ from networkx.algorithms.centrality import edge_betweenness_centrality
 
 
 def edgebetweeness(
-    sparkdf, src="src", dst="dst", distance_col="distance", cluster_id_colname="cluster_id"
+    sparkdf,
+    src="src",
+    dst="dst",
+    distance_col="distance",
+    cluster_id_colname="cluster_id",
 ):
     """return edge betweenness
     
@@ -55,7 +59,9 @@ def edgebetweeness(
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         eb = edge_betweenness_centrality(nxGraph, normalized=True, weight=pdistance)
         currentcomp = pdf[cluster_id_colname].iloc[0]  # access current component
-        compsize = pdf[cluster_id_colname].size  # how many nodes does this cluster have?
+        compsize = pdf[
+            cluster_id_colname
+        ].size  # how many nodes does this cluster have?
 
         for srcdst, v in eb.items():
             # unpack (src,dst) tuple key
