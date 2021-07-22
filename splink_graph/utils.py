@@ -9,30 +9,29 @@ from pyspark.sql.types import *
 import pyspark.sql.functions as f
 from pyspark.sql.functions import when
 from pyspark.sql.types import LongType, StringType, FloatType, DoubleType
-import site
 
 
 def _get_local_site_packages_dir():
     import splink_graph
+
     return splink_graph.__file__[0:-11]
-    
+
 
 def _create_spark_jars_string():
     sitestr = _get_local_site_packages_dir()
     if (pyspark.__version__).startswith("2"):
         spark_jars_string = (
-        sitestr
-        + "jars/graphframes-0.6.0-spark2.3-s_2.11.jar,"
-        + sitestr
-        + "jars/scala-logging-api_2.11-2.1.2.jar, "
-        + sitestr
-        + "jars/scala-logging-slf4j_2.11-2.1.2.jar"
+            sitestr
+            + "jars/graphframes-0.6.0-spark2.3-s_2.11.jar,"
+            + sitestr
+            + "jars/scala-logging-api_2.11-2.1.2.jar, "
+            + sitestr
+            + "jars/scala-logging-slf4j_2.11-2.1.2.jar"
         )
     else:
-        spark_jars_string = (
-        sitestr
-        + "jars/graphframes-0.8.0-spark3.0-s_2.12")
+        spark_jars_string = sitestr + "jars/graphframes-0.8.0-spark3.0-s_2.12"
     return spark_jars_string
+
 
 def _graphharmoniser(sparkdf, colsrc, coldst):
 

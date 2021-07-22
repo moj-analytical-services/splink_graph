@@ -7,7 +7,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 import pyspark.sql.functions as f
 import networkx as nx
-from splink_graph.node_metrics import eigencentrality
 from graphframes import GraphFrame
 
 

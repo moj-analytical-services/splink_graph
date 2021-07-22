@@ -9,10 +9,10 @@ from graphframes import GraphFrame
 
 
 @pytest.mark.order(1)
-def test_cc_simple(sparkwithgraphframes, graphframes_tmpdir):
+def test_cc_simple(sparkSessionwithgraphframes, graphframes_tmpdir):
 
     # Create an Edge DataFrame with "src" and "dst" columns
-    e2_df = sparkwithgraphframes.createDataFrame(
+    e2_df = sparkSessionwithgraphframes.createDataFrame(
         [
             ("a", "b", 0.4),
             ("b", "c", 0.56),
@@ -27,9 +27,9 @@ def test_cc_simple(sparkwithgraphframes, graphframes_tmpdir):
         ["src", "dst", "weight"],
     )
 
-    assert _find_graphframes_jars(sparkwithgraphframes) == 0
+    assert _find_graphframes_jars(sparkSessionwithgraphframes) == 0
 
-    sparkwithgraphframes.sparkContext.setCheckpointDir("graphframes_tempdir/")
+    sparkSessionwithgraphframes.sparkContext.setCheckpointDir("graphframes_tempdir/")
     df_result = sp_connected_components(
         e2_df, src="src", dst="dst", weight_colname="weight"
     ).toPandas()
