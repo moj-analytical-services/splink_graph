@@ -97,6 +97,7 @@ Edge metrics curretnly offered:
 - [ ] cluster modularity based on partitions created by spectral cut
 - [x] cluster modularity based on partitions created by label propagation
 - [ ] shallow embeddings of subgraphs/clusters (WIP)
+- [x] Add a connected components function (from the graphframes library)
 
 
 For upcoming functionality further down the line please consult the `TODO.md` file
