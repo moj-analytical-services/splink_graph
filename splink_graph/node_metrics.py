@@ -48,15 +48,15 @@ example input spark dataframe
 
 |src|dst|weight|cluster_id|distance|
 |---|---|------|----------|--------|
-|  f|  d|  0.67|         0| 0.329|
-|  f|  g|  0.34|         0| 0.659|
-|  b|  c|  0.56|8589934592| 0.439|
-|  g|  h|  0.99|         0|0.010|
-|  a|  b|   0.4|8589934592|0.6|
-|  h|  i|   0.5|         0|0.5|
-|  h|  j|   0.8|         0| 0.199|
-|  d|  e|  0.84|         0| 0.160|
-|  e|  f|  0.65|         0|0.35|
+|  f|  d|  0.67|         0|   0.329|
+|  f|  g|  0.34|         0|   0.659|
+|  b|  c|  0.56|8589934592|   0.439|
+|  g|  h|  0.99|         0|   0.010|
+|  a|  b|   0.4|8589934592|     0.6|
+|  h|  i|   0.5|         0|     0.5|
+|  h|  j|   0.8|         0|   0.199|
+|  d|  e|  0.84|         0|   0.160|
+|  e|  f|  0.65|         0|    0.35|
 
 
 example output spark dataframe
@@ -112,7 +112,7 @@ example output spark dataframe
 
 
 def harmoniccentrality(
-    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"
 ):
 
     """
@@ -126,6 +126,7 @@ def harmoniccentrality(
     Returns:
         node_id:
         harmonic_centrality: Harmonic centrality of cluster cluster_id
+        cluster_id: cluster_id corresponding to the node_id
 
 Harmonic centrality (also known as valued centrality) is a variant of closeness centrality, that was invented
 to solve the problem the original formula had when dealing with unconnected graphs.
@@ -139,31 +140,31 @@ input spark dataframe:
 
 |src|dst|weight|cluster_id|distance|
 |---|---|------|----------|--------|
-|  f|  d|  0.67|         0| 0.329|
-|  f|  g|  0.34|         0| 0.659|
-|  b|  c|  0.56|8589934592| 0.439|
-|  g|  h|  0.99|         0|0.010|
-|  a|  b|   0.4|8589934592|0.6|
-|  h|  i|   0.5|         0|0.5|
-|  h|  j|   0.8|         0| 0.199|
-|  d|  e|  0.84|         0| 0.160|
-|  e|  f|  0.65|         0|0.35|
+|  f|  d|  0.67|         0|   0.329|
+|  f|  g|  0.34|         0|   0.659|
+|  b|  c|  0.56|8589934592|   0.439|
+|  g|  h|  0.99|         0|   0.010|
+|  a|  b|   0.4|8589934592|     0.6|
+|  h|  i|   0.5|         0|     0.5|
+|  h|  j|   0.8|         0|   0.199|
+|  d|  e|  0.84|         0|   0.160|
+|  e|  f|  0.65|         0|    0.35|
 
 output spark dataframe:
 
 
-|node_id|harmonic_centrality|
-|-------|-------------------|
-|   b   |                2.0|
-|   c   |                1.5|
-|   a   |                1.5|
-|   f   |  4.166666666666667|
-|   d   | 3.3333333333333335|
-|   g   |                4.0|
-|   h   |  4.166666666666667|
-|   i   | 2.8333333333333335|
-|   j   | 2.8333333333333335|
-|   e   | 3.3333333333333335|
+|node_id|harmonic_centrality|cluster_id|
+|-------|-------------------|----------|
+|   b   |                2.0|8589934592|
+|   c   |                1.5|8589934592|
+|   a   |                1.5|8589934592|
+|   f   |  4.166666666666667|         0|
+|   d   | 3.3333333333333335|         0|
+|   g   |                4.0|         0|
+|   h   |  4.166666666666667|         0|
+|   i   | 2.8333333333333335|         0|
+|   j   | 2.8333333333333335|         0|
+|   e   | 3.3333333333333335|         0|
 
     """
 
@@ -171,6 +172,7 @@ output spark dataframe:
         [
             StructField("node_id", StringType()),
             StructField("harmonic_centrality", DoubleType()),
+            StructField(cluster_id_colname, LongType()),
         ]
     )
 
@@ -182,7 +184,7 @@ output spark dataframe:
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         hc = harmonic_centrality(nxGraph)
-        return (
+        out_df = (
             pd.DataFrame.from_dict(hc, orient="index", columns=["harmonic_centrality"])
             .reset_index()
             .rename(
@@ -192,6 +194,9 @@ output spark dataframe:
                 }
             )
         )
+        cluster_id = pdf[cluster_id_colname][0]
+        out_df[cluster_id_colname] = cluster_id
+        return out_df
 
     out = sparkdf.groupby(cluster_id_colname).apply(harmc)
     return out
