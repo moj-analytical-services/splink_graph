@@ -39,7 +39,7 @@ def test_eigencentrality_customcolname(spark):
 
     assert df_result["eigen_centrality"][0] == pytest.approx(0.50000, 0.01)
 
-    f1 = df_result["node"] == "a"
+    f1 = df_result["node_id"] == "a"
     assert df_result[f1, "clus_id"] == 1
 
 
