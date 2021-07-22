@@ -22,25 +22,26 @@ def eigencentrality(
     sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
 ):
 
-    """    
+    """
     Args:
         sparkdf: imput edgelist Spark DataFrame
         src: src column name
         dst: dst column name
         distance_colname: distance column name
         cluster_id_colname: Graphframes-created connected components created cluster_id
-        
+
     Returns:
         node_id:
         eigen_centrality: eigenvector centrality of cluster cluster_id
-    
+        cluster_id: cluster_id corresponding to the node_id
+
 Eigenvector Centrality is an algorithm that measures the transitive influence or connectivity of nodes.
-Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality: 
-A Family of Measures. 
-It was the first of the centrality measures that considered the transitive importance of a node in a graph, 
-rather than only considering its direct importance. 
-Relationships to high-scoring nodes contribute more to the score of a node than connections to low-scoring nodes. 
-A high score means that a node is connected to other nodes that have high scores. 
+Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality:
+A Family of Measures.
+It was the first of the centrality measures that considered the transitive importance of a node in a graph,
+rather than only considering its direct importance.
+Relationships to high-scoring nodes contribute more to the score of a node than connections to low-scoring nodes.
+A high score means that a node is connected to other nodes that have high scores.
 
 example input spark dataframe
 
@@ -58,29 +59,30 @@ example input spark dataframe
 |  e|  f|  0.65|         0|0.35|
 
 
-example output spark dataframe    
-    
+example output spark dataframe
 
-|node|   eigen_centrality|
-|----|-------------------|
-|   b|  0.707106690085642|
-|   c| 0.5000000644180599|
-|   a| 0.5000000644180599|
-|   f| 0.5746147732828122|
-|   d| 0.4584903903420785|
-|   g|0.37778352393858183|
-|   h|0.27663243805676946|
-|   i|0.12277029263709134|
-|   j|0.12277029263709134|
-|   e| 0.4584903903420785|
 
-   
+|node_id|   eigen_centrality|cluster_id|
+|-------|-------------------|----------|
+|   b   |  0.707106690085642|8589934592|
+|   c   | 0.5000000644180599|8589934592|
+|   a   | 0.5000000644180599|8589934592|
+|   f   | 0.5746147732828122|         0|
+|   d   | 0.4584903903420785|         0|
+|   g   |0.37778352393858183|         0|
+|   h   |0.27663243805676946|         0|
+|   i   |0.12277029263709134|         0|
+|   j   |0.12277029263709134|         0|
+|   e   | 0.4584903903420785|         0|
+
+
 
     """
     ecschema = StructType(
         [
             StructField("node_id", StringType()),
             StructField("eigen_centrality", DoubleType()),
+            StructField(cluster_id_colname, LongType()),
         ]
     )
 
@@ -92,13 +94,18 @@ example output spark dataframe
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         ec = eigenvector_centrality(nxGraph)
-        return (
+        out_df = (
             pd.DataFrame.from_dict(ec, orient="index", columns=["eigen_centrality"])
             .reset_index()
             .rename(
                 columns={"index": "node_id", "eigen_centrality": "eigen_centrality"}
             )
         )
+
+        cluster_id = pdf[cluster_id_colname][0]
+        out_df[cluster_id_colname] = cluster_id
+        return out_df
+
 
     out = sparkdf.groupby(cluster_id_colname).apply(eigenc)
     return out
@@ -115,16 +122,16 @@ def harmoniccentrality(
         dst: dst column name
         distance_colname: distance column name
         cluster_id_colname: Graphframes-created connected components created cluster_id
-        
+
     Returns:
         node_id:
         harmonic_centrality: Harmonic centrality of cluster cluster_id
-        
-Harmonic centrality (also known as valued centrality) is a variant of closeness centrality, that was invented 
+
+Harmonic centrality (also known as valued centrality) is a variant of closeness centrality, that was invented
 to solve the problem the original formula had when dealing with unconnected graphs.
 Harmonic centrality was proposed by Marchiori and Latora  while trying to come up with a sensible notion of "average shortest path".
-They suggested a different way of calculating the average distance to that used in the Closeness Centrality algorithm. 
-Rather than summing the distances of a node to all other nodes, the harmonic centrality algorithm sums the inverse of those distances. 
+They suggested a different way of calculating the average distance to that used in the Closeness Centrality algorithm.
+Rather than summing the distances of a node to all other nodes, the harmonic centrality algorithm sums the inverse of those distances.
 This enables it deal with infinite values.
 
 
@@ -143,20 +150,20 @@ input spark dataframe:
 |  e|  f|  0.65|         0|0.35|
 
 output spark dataframe:
- 
 
-|node|harmonic_centrality|
-|----|-------------------|
-|   b|                2.0|
-|   c|                1.5|
-|   a|                1.5|
-|   f|  4.166666666666667|
-|   d| 3.3333333333333335|
-|   g|                4.0|
-|   h|  4.166666666666667|
-|   i| 2.8333333333333335|
-|   j| 2.8333333333333335|
-|   e| 3.3333333333333335|
+
+|node_id|harmonic_centrality|
+|-------|-------------------|
+|   b   |                2.0|
+|   c   |                1.5|
+|   a   |                1.5|
+|   f   |  4.166666666666667|
+|   d   | 3.3333333333333335|
+|   g   |                4.0|
+|   h   |  4.166666666666667|
+|   i   | 2.8333333333333335|
+|   j   | 2.8333333333333335|
+|   e   | 3.3333333333333335|
 
     """
 

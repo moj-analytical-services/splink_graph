@@ -26,18 +26,21 @@ def test_eigencentrality_simple(spark):
 def test_eigencentrality_customcolname(spark):
 
     data_list = [
-        {"id_l": "a", "id_r": "b", "distance": 0.4, "cluster_id": 1},
-        {"id_l": "b", "id_r": "c", "distance": 0.56, "cluster_id": 1},
-        {"id_l": "d", "id_r": "e", "distance": 0.2, "cluster_id": 2},
-        {"id_l": "f", "id_r": "e", "distance": 0.8, "cluster_id": 2},
+        {"id_l": "a", "id_r": "b", "distance": 0.4, "clus_id": 1},
+        {"id_l": "b", "id_r": "c", "distance": 0.56, "clus_id": 1},
+        {"id_l": "d", "id_r": "e", "distance": 0.2, "clus_id": 2},
+        {"id_l": "f", "id_r": "e", "distance": 0.8, "clus_id": 2},
     ]
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     e_df = e_df.withColumn("weight", 1.0 - f.col("distance"))
 
-    df_result = eigencentrality(e_df, src="id_l", dst="id_r").toPandas()
+    df_result = eigencentrality(e_df, src="id_l", dst="id_r", cluster_id_colname="clus_id").toPandas()
 
     assert df_result["eigen_centrality"][0] == pytest.approx(0.50000, 0.01)
+
+    f1 = df_result["node_id"] == "a"
+    assert df_result.loc[f1, "clus_id"][0] == 1
 
 
 def test_harmoniccentrality_simple(spark):
