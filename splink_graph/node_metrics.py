@@ -33,7 +33,7 @@ def eigencentrality(
     Returns:
         node_id:
         eigen_centrality: eigenvector centrality of cluster cluster_id
-        cluster_id: cluster_id correponsding to
+        cluster_id: cluster_id corresponding to the node_id
     
 Eigenvector Centrality is an algorithm that measures the transitive influence or connectivity of nodes.
 Eigenvector Centrality was proposed by Phillip Bonacich, in his 1986 paper Power and Centrality: 
