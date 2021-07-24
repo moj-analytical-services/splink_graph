@@ -360,7 +360,11 @@ def cluster_eb_modularity(
         gn = tuple(sorted(c) for c in next(comp))
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
-        co_eb_mod = nx_comm.modularity(nxGraph, gn)
+        try:
+            co_eb_mod = nx_comm.modularity(nxGraph, gn)
+        except ZeroDivisionError:
+            raise Exception(f"ZeroDivisionError on component id {co}. "
+                             "This can occur if one of the weights (distances) is zero.")
 
         return pd.DataFrame(
             [[co] + [co_eb_mod]], columns=["cluster_id", "cluster_eb_modularity",],

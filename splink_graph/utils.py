@@ -79,7 +79,7 @@ def _probability_to_normalised_bayes_factor(
     score_max = df.select(f.max("__match_score__")).collect()[0][0]
 
     expr = f"""
-    1 - ((__match_score__ - {score_min})/{score_max - score_min} )
+    1.01 - ((__match_score__ - {score_min})/{score_max - score_min} )
     """
     df = df.withColumn(out_colname, f.expr(expr))
 
