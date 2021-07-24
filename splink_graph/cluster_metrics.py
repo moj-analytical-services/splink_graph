@@ -363,7 +363,11 @@ def cluster_eb_modularity(
         nc = nx.number_of_nodes(nxGraph)
         
         if (nc > 2):
-            co_eb_mod = nx_comm.modularity(nxGraph, gn)
+            try:
+                co_eb_mod = nx_comm.modularity(nxGraph, gn)
+            except ZeroDivisionError:
+                raise Exception(f"ZeroDivisionError on component id {co}. "
+                             "This can occur if one of the weights (distances) is zero.")
         else:
             co_eb_mod=-1.0
 
