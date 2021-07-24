@@ -360,7 +360,12 @@ def cluster_eb_modularity(
         gn = tuple(sorted(c) for c in next(comp))
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
-        co_eb_mod = nx_comm.modularity(nxGraph, gn)
+        nc = nx.number_of_nodes(nxGraph)
+        
+        if (nc > 2):
+            co_eb_mod = nx_comm.modularity(nxGraph, gn)
+        else:
+            co_eb_mod=-1.0
 
         return pd.DataFrame(
             [[co] + [co_eb_mod]], columns=["cluster_id", "cluster_eb_modularity",],
