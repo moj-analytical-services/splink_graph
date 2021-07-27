@@ -35,7 +35,9 @@ def test_eigencentrality_customcolname(spark):
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     e_df = e_df.withColumn("weight", 1.0 - f.col("distance"))
 
-    df_result = eigencentrality(e_df, src="id_l", dst="id_r", cluster_id_colname="clus_id").toPandas()
+    df_result = eigencentrality(
+        e_df, src="id_l", dst="id_r", cluster_id_colname="clus_id"
+    ).toPandas()
 
     assert df_result["eigen_centrality"][0] == pytest.approx(0.50000, 0.01)
 
@@ -71,7 +73,9 @@ def test_harmoniccentrality_customcolname(spark):
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     e_df = e_df.withColumn("weight", 1.0 - f.col("distance"))
 
-    df_result = harmoniccentrality(e_df, src="id_l", dst="id_r", cluster_id_colname="clus_id").toPandas()
+    df_result = harmoniccentrality(
+        e_df, src="id_l", dst="id_r", cluster_id_colname="clus_id"
+    ).toPandas()
 
     assert df_result["harmonic_centrality"][0] == pytest.approx(1.50, 0.1)
     assert df_result["harmonic_centrality"][4] == pytest.approx(2.0, 0.1)

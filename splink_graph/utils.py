@@ -53,7 +53,6 @@ def _graphharmoniser(sparkdf, colsrc, coldst):
     return sparkdf
 
 
-
 def _probability_to_normalised_bayes_factor(
     df, prob_colname, out_colname="match_score_norm"
 ):
@@ -86,10 +85,6 @@ def _probability_to_normalised_bayes_factor(
     df = df.drop("match_score")
 
     return df
-
-
-
-
 
 
 def _assert_columns(sparkdf, columns):

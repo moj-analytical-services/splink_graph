@@ -120,6 +120,31 @@ def test_cluster_eb_modularity_neg(spark):
     assert df_result["cluster_eb_modularity"][0] < 0
 
 
+def test_cluster_eb_modularity_0_dist(spark):
+    with pytest.raises(Exception):
+        # Create an Edge DataFrame with on "src" and "dst" column. so 7 nodes connected one after the other
+        # modularity should be relatively large here (>0.30) .all edges are bridges
+        data_list = [
+            {"src": "a", "dst": "b", "distance": 1.0, "cluster_id": 1},
+            {"src": "b", "dst": "c", "distance": 0.00, "cluster_id": 1},
+            {"src": "c", "dst": "d", "distance": 1.0, "cluster_id": 1},
+            {"src": "d", "dst": "e", "distance": 1.0, "cluster_id": 1},
+            {"src": "e", "dst": "f", "distance": 1.0, "cluster_id": 1},
+            {"src": "f", "dst": "g", "distance": 1.0, "cluster_id": 1},
+        ]
+
+        e_df = spark.createDataFrame(Row(**x) for x in data_list)
+        df_result = cluster_eb_modularity(
+            e_df,
+            src="src",
+            dst="dst",
+            distance_colname="distance",
+            cluster_id_colname="cluster_id",
+        ).toPandas()
+
+        assert df_result["cluster_eb_modularity"][0] > 0.30
+
+
 def test_cluster_eb_modularity_pos_large(spark):
     # Create an Edge DataFrame with on "src" and "dst" column. so 7 nodes connected one after the other
     # modularity should be relatively large here (>0.30) .all edges are bridges

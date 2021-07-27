@@ -2,14 +2,28 @@ import pyspark
 import pyspark.sql.functions as f
 from pyspark.sql.functions import expr
 from pyspark.sql.functions import PandasUDFType, pandas_udf
-from pyspark.sql.types import StructField, StructType, FloatType, StringType, LongType,ArrayType
+from pyspark.sql.types import (
+    StructField,
+    StructType,
+    FloatType,
+    StringType,
+    LongType,
+    ArrayType,
+)
 from node2vec import Node2Vec
 import networkx as nx
 import ast
 import numpy as np
 
 
-def _node2vec_embedding(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id", dimensions=64, walk_length=8):
+def _node2vec_embedding(
+    sparkdf,
+    src="src",
+    dst="dst",
+    cluster_id_colname="cluster_id",
+    dimensions=64,
+    walk_length=8,
+):
     """provide node2vec embedding of each subgraph/cluster
     
     
@@ -31,14 +45,13 @@ def _node2vec_embedding(sparkdf, src="src", dst="dst", cluster_id_colname="clust
     like this: `n2varray= np.array(ast.literal_eval(n2varraystring))`
     This has been implemented like this because of limitations on return types of PANDAS_UDFs)
         
-    """    
+    """
 
+    psrc = src
+    pdst = dst
+    pdimensions = dimensions
+    pwalk_length = walk_length
 
-    psrc=src
-    pdst=dst
-    pdimensions=dimensions
-    pwalk_length=walk_length
-    
     @pandas_udf(
         StructType(
             [
@@ -49,7 +62,7 @@ def _node2vec_embedding(sparkdf, src="src", dst="dst", cluster_id_colname="clust
         functionType=PandasUDFType.GROUPED_MAP,
     )
     def n2v(pdf: pd.DataFrame) -> pd.DataFrame:
-        
+
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         embeddings = []
@@ -69,13 +82,11 @@ def _node2vec_embedding(sparkdf, src="src", dst="dst", cluster_id_colname="clust
             embeddings.append(list(graph_nodes_emb_model.get_vector(n)))
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
-        
-            
-        return pd.DataFrame([[co] + [str(embeddings)]],columns=["cluster_id","n2vembed",])
-    
-    
+
+        return pd.DataFrame(
+            [[co] + [str(embeddings)]], columns=["cluster_id", "n2vembed",]
+        )
+
     out = sparkdf.groupby(cluster_id_colname).apply(n2v)
-    
 
     return out
-         
