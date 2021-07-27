@@ -106,14 +106,11 @@ example output spark dataframe
         out_df[cluster_id_colname] = cluster_id
         return out_df
 
-
     out = sparkdf.groupby(cluster_id_colname).apply(eigenc)
     return out
 
 
-def harmoniccentrality(
-    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"
-):
+def harmoniccentrality(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
 
     """
     Args:

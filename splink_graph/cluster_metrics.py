@@ -361,15 +361,17 @@ def cluster_eb_modularity(
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
         nc = nx.number_of_nodes(nxGraph)
-        
-        if (nc > 2):
+
+        if nc > 2:
             try:
                 co_eb_mod = nx_comm.modularity(nxGraph, gn)
             except ZeroDivisionError:
-                raise Exception(f"ZeroDivisionError on component id {co}. "
-                             "This can occur if one of the weights (distances) is zero.")
+                raise Exception(
+                    f"ZeroDivisionError on component id {co}. "
+                    "This can occur if one of the weights (distances) is zero."
+                )
         else:
-            co_eb_mod=-1.0
+            co_eb_mod = -1.0
 
         return pd.DataFrame(
             [[co] + [co_eb_mod]], columns=["cluster_id", "cluster_eb_modularity",],
