@@ -7,6 +7,7 @@ from splink_graph.cluster_metrics import (
     cluster_lpg_modularity,
     cluster_avg_edge_betweenness,
     cluster_connectivity_stats,
+    number_of_bridges
 )
 
 import pytest
@@ -434,3 +435,36 @@ def test_cluster_connectivity_stats_linegraph(spark):
     assert df_result["node_conn"][0] == 1
     assert df_result["edge_conn"][0] == 1
     assert df_result["algebraic_conn"][0] < 0.2
+
+
+def test_number_of_bridges(spark):
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame(
+        [
+            ("a", "b", 0.4, 1),
+            ("b", "c", 0.56, 1),
+            ("d", "e", 0.84, 2),
+            ("e", "f", 0.65, 2),
+            ("f", "d", 0.67, 2),
+            ("f", "g", 0.34, 2),
+            ("g", "h", 0.99, 2),
+            ("h", "i", 0.5, 2),
+            ("h", "j", 0.8, 2),
+        ],
+        ["src", "dst", "weight", "clus_id"],
+    )
+
+    e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
+
+    out = number_of_bridges(e2_df, cluster_id_colname="clus_id").toPandas()
+
+    filter_cluster_1 = out["cluster_id"] == 1
+
+    filter_cluster_2 = out["cluster_id"] == 2
+
+    num_bridges_cluster_1 = out[filter_cluster_1].iloc[0]["number_of_bridges"]
+    assert num_bridges_cluster_1 == 2
+
+    num_bridges_cluster_2 = out[filter_cluster_2].iloc[0]["number_of_bridges"]
+    assert num_bridges_cluster_2 == 4
