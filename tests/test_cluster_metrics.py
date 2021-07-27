@@ -7,14 +7,11 @@ from splink_graph.cluster_metrics import (
     cluster_lpg_modularity,
     cluster_avg_edge_betweenness,
     cluster_connectivity_stats,
-    number_of_bridges
+    number_of_bridges,
 )
 
 import pytest
-import pandas as pd
-from pandas.testing import assert_frame_equal
 import pyspark.sql.functions as f
-import json
 
 
 def test_cluster_basic_stats(spark):
