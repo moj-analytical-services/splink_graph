@@ -109,6 +109,15 @@ def _assert_columns(sparkdf, columns):
         )
 
 
+def nodes_from_edge_df(edge_df, src="src", dst="dst", id_colname="id"):
+
+    nsrc = edge_df.select(src).withColumnRenamed(src, id_colname)
+    ndst = edge_df.select(dst).withColumnRenamed(dst, id_colname)
+    nodes = nsrc.union(ndst).distinct()
+
+    return nodes
+
+
 def _nodearray_from_edge_df(
     sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"
 ):
