@@ -3,13 +3,15 @@ import pyspark
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
+from pyspark.sql import SparkSession
 import pyspark.sql.functions as f
 from splink_graph.cc import (
     _find_graphframes_jars,
     graphframes_connected_components,
-    pyspark_connected_components,
+    nx_connected_components,
 )
 from graphframes import GraphFrame
+import networkx as nx
 
 
 @pytest.mark.order(1)
@@ -47,9 +49,8 @@ def test_cc_simple(sparkSessionwithgraphframes, graphframes_tmpdir):
     assert df_result2["cluster_id"].unique().size == 2
     assert df_result2["node_id"].count() == 10
 
-@pytest.mark.skip(reason="still WIP")
-@pytest.mark.order(2)
-def test_cc_pyspark_simple(spark, graphframes_tmpdir):
+
+def test_nx_cc_simple(spark):
 
     # Create an Edge DataFrame with "src" and "dst" columns
     e2_df = spark.createDataFrame(
@@ -67,26 +68,15 @@ def test_cc_pyspark_simple(spark, graphframes_tmpdir):
         ["src", "dst", "weight"],
     )
 
-    # spark.sparkContext.setCheckpointDir("graphframes_tempdir/")
-    df_result = pyspark_connected_components(
-        spark,
-        edges_df=e2_df,
-        src="src",
-        dst="dst",
-        weight_colname="weight",
-        cc_threshold=0.82,
+    df_result = nx_connected_components(
+        spark, e2_df, src="src", dst="dst", weight_colname="weight", cc_threshold=0.82
     ).toPandas()
 
     assert df_result["cluster_id"].unique().size == 2
     assert df_result["node_id"].unique().size == 4
 
-    df_result2 = pyspark_connected_components(
-        spark,
-        edges_df=e2_df,
-        src="src",
-        dst="dst",
-        weight_colname="weight",
-        cc_threshold=0.2,
+    df_result2 = nx_connected_components(
+        spark, e2_df, src="src", dst="dst", weight_colname="weight", cc_threshold=0.2
     ).toPandas()
     assert df_result2["cluster_id"].unique().size == 2
     assert df_result2["node_id"].count() == 10
