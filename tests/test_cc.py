@@ -80,3 +80,15 @@ def test_nx_cc_simple(spark):
     ).toPandas()
     assert df_result2["cluster_id"].unique().size == 2
     assert df_result2["node_id"].count() == 10
+
+
+def test_nx_cc_2edges(spark):
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame(
+        [("a", "b", 0.999), ("y", "z", 0.999),], ["src", "dst", "weight"],
+    )
+    df_result = nx_connected_components(
+        spark, e2_df, src="src", dst="dst", weight_colname="weight", cc_threshold=0.82
+    ).toPandas()
+
+    assert df_result["cluster_id"].unique().size == 2

@@ -19,7 +19,7 @@ Represents a single entity such as a person or an object,
 
 `Edge` 
 
-Represents a relationship between two vertices (e.g., are these two vertices friends on a social network?).
+Represents a relationship between two vertices (e.g., are these two vertices/nodes friends on a social network?).
 
 `Directed Graph vs. Undirected Graph` 
 
@@ -80,10 +80,16 @@ the remaining nodes into two or more isolated subgraphs.
 Edge connectivity of a graph gives for the minimum number of edges that need to be removed to separate 
 the remaining nodes into two or more isolated subgraphs.
     
-`weisfeiler lehman graphhash` 
+`weisfeiler lehman graph hash` 
 
-A Weisfeiler Lehman graph hash offers a way to quickly test for graph isomorphisms. Hashes are identical for isomorphic graphs and there are strong guarantees 
-that non-isomorphic graphs will get different hashes
+A Weisfeiler Lehman graph hash offers a way to quickly test for graph isomorphisms. Hashes are identical for isomorphic graphs 
+and there are strong guarantees that non-isomorphic graphs will get different hashes. 
+Two graphs are considered isomorphic if there is a mapping between the nodes of the graphs that preserves node adjacencies. 
+That is, a pair of nodes may be connected by an edge in the first graph if and only if the corresponding pair of nodes in 
+the second graph is also connected by an edge in the same way. 
 
+![](https://github.com/moj-analytical-services/splink_graph/raw/master/notebooks/graph-isomorphism.png)
+
+Graph 1 and Graph 2 above are isomorphic. The correspondance between nodes is illustrated by the node colors and numbers.
 
 ---
