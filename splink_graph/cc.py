@@ -97,12 +97,12 @@ def nx_connected_components(
         if edgelistdir is not None:
             os.makedirs(edgelistdir, exist_ok=True)
             nx.write_edgelist(
-                currentnx, edgelistdir + "/cluster" + str(netid) + "edgelist"
+                currentnx, edgelistdir + "/cluster" + str(netid).zfill(9) + "edgelist"
             )
 
         for n in currentnx.nodes():
             idlist.append(n)
-            cclist.append(str(netid))
+            cclist.append(str(netid).zfill(9))
 
     out = pd.DataFrame(zip(cclist, idlist), columns=["cluster_id", "node_id"])
 
