@@ -9,6 +9,7 @@ from pyspark.sql.types import *
 import pyspark.sql.functions as f
 from pyspark.sql.functions import when
 from pyspark.sql.types import LongType, StringType, FloatType, DoubleType
+import os
 
 
 def _get_local_site_packages_dir():
