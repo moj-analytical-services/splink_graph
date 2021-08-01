@@ -109,6 +109,15 @@ def _assert_columns(sparkdf, columns):
         )
 
 
+def nodes_from_edge_df(edge_df, src="src", dst="dst", id_colname="id"):
+
+    nsrc = edge_df.select(src).withColumnRenamed(src, id_colname)
+    ndst = edge_df.select(dst).withColumnRenamed(dst, id_colname)
+    nodes = nsrc.union(ndst).distinct()
+
+    return nodes
+
+
 def _nodearray_from_edge_df(
     sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"
 ):
@@ -233,3 +242,19 @@ def _from_weighted_graphframe_to_nxGraph(g):
         g.edges.rdd.map(lambda x: (x.src, x.dst, x.weight)).collect()
     )
     return nxGraph
+
+
+# read a directory of edgelist files and import them into networkx graphs
+def read_edgelists_from_dir(directory):
+    listofnxgraphs = []
+    for filename in os.listdir(directory):
+        if filename.endswith("edgelist"):
+
+            current_g = nx.read_edgelist(directory + filename)
+            relabeled_g = nx.convert_node_labels_to_integers(
+                current_g, first_label=0, ordering="default", label_attribute="node_id"
+            )
+
+            listofnxgraphs.append(relabeled_g)
+
+    return listofnxgraphs

@@ -74,8 +74,7 @@ def cluster_basic_stats(
     # density related calcs based on nodecount and max possible number of edges in an undirected graph
 
     output = output.withColumn(
-        "maxNumberOfEdgesundir",
-        f.col("nodecount") * (f.col("nodecount") - 1.0) / 2.0,
+        "maxNumberOfEdgesundir", f.col("nodecount") * (f.col("nodecount") - 1.0) / 2.0,
     )
     output = output.withColumn(
         "density", f.round(f.col("edgecount") / f.col("maxNumberOfEdgesundir"), 3)
@@ -370,11 +369,7 @@ def cluster_eb_modularity(
             co_eb_mod = -1.0
 
         return pd.DataFrame(
-            [[co] + [co_eb_mod]],
-            columns=[
-                "cluster_id",
-                "cluster_eb_modularity",
-            ],
+            [[co] + [co_eb_mod]], columns=["cluster_id", "cluster_eb_modularity",],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(cluster_eb_m)
@@ -463,11 +458,7 @@ def cluster_lpg_modularity(
         co_lpg_mod = nx_comm.modularity(nxGraph, gn)
 
         return pd.DataFrame(
-            [[co] + [co_lpg_mod]],
-            columns=[
-                "cluster_id",
-                "cluster_lpg_modularity",
-            ],
+            [[co] + [co_lpg_mod]], columns=["cluster_id", "cluster_lpg_modularity",],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(cluster_lpg_m)
@@ -541,13 +532,7 @@ def cluster_avg_edge_betweenness(
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
-        return pd.DataFrame(
-            [[co] + [aeb]],
-            columns=[
-                "cluster_id",
-                "avg_cluster_eb",
-            ],
-        )
+        return pd.DataFrame([[co] + [aeb]], columns=["cluster_id", "avg_cluster_eb",],)
 
     out = sparkdf.groupby(cluster_id_colname).apply(avg_eb)
 

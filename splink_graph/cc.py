@@ -6,8 +6,10 @@ from pyspark.context import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 import pyspark.sql.functions as f
-import networkx as nx
+import pandas as pd
 from graphframes import GraphFrame
+from splink_graph.utils import nodes_from_edge_df
+import os
 
 
 def _find_graphframes_jars(spark: SparkSession):
@@ -41,7 +43,7 @@ def _find_graphframes_jars(spark: SparkSession):
     return 0
 
 
-def sp_connected_components(
+def graphframes_connected_components(
     edges_df,
     src="src",
     dst="dst",
@@ -51,10 +53,9 @@ def sp_connected_components(
 ):
 
     edges_for_cc = edges_df.filter(f.col(weight_colname) > cc_threshold)
-
-    nsrc = edges_for_cc.select(src).withColumnRenamed(src, "id")
-    ndst = edges_for_cc.select(dst).withColumnRenamed(dst, "id")
-    nodes_for_cc = nsrc.union(ndst).distinct()
+    nodes_for_cc = nodes_from_edge_df(
+        edges_for_cc, src="src", dst="dst", id_colname="id"
+    )
 
     g = GraphFrame(nodes_for_cc, edges_for_cc)
     cc = g.connectedComponents()
@@ -64,3 +65,45 @@ def sp_connected_components(
     )
 
     return cc
+
+
+def nx_connected_components(
+    spark: SparkSession,
+    edges_df,
+    src="src",
+    dst="dst",
+    weight_colname="tf_adjusted_match_prob",
+    cluster_id_colname="cluster_id",
+    cc_threshold=0.90,
+    edgelistdir=None,
+):
+
+    pdf = edges_df.toPandas()
+
+    filtered_pdf = pdf[pdf[weight_colname] > cc_threshold]
+
+    nxGraph = nx.Graph()
+    nxGraph = nx.from_pandas_edgelist(filtered_pdf, src, dst, weight_colname)
+
+    netid = 0
+    cclist = []
+    idlist = []
+
+    for c in nx.connected_components(nxGraph):
+        netid = netid + 1
+
+        currentnx = nxGraph.subgraph(c)
+
+        if edgelistdir is not None:
+            os.makedirs(edgelistdir, exist_ok=True)
+            nx.write_edgelist(
+                currentnx, edgelistdir + "/cluster" + str(netid) + "edgelist"
+            )
+
+        for n in currentnx.nodes():
+            idlist.append(n)
+            cclist.append(str(netid))
+
+    out = pd.DataFrame(zip(cclist, idlist), columns=["cluster_id", "node_id"])
+
+    return spark.createDataFrame(out)
