@@ -1,12 +1,12 @@
 import pytest
-
 import pyspark
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SparkSession
 from pyspark.sql import types
 import os
+from functools import lru_cache
 
-
+@lru_cache(maxsize=None)
 @pytest.fixture(scope="function")
 def spark():
 
