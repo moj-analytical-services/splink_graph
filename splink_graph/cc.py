@@ -90,19 +90,22 @@ def nx_connected_components(
     idlist = []
 
     for c in nx.connected_components(nxGraph):
-        netid = netid + 1
+        netid = netid + 1 # go to next conn comp id
 
+        # create a graph from this connected component
         currentnx = nxGraph.subgraph(c)
 
+        # if we need to write the edgelist of the component to a directory do so. 
         if edgelistdir is not None:
             os.makedirs(edgelistdir, exist_ok=True)
             nx.write_edgelist(
-                currentnx, edgelistdir + "/cluster" + str(netid) + "edgelist"
+                currentnx, edgelistdir + "/cluster" + str(netid).zfill(9) + "edgelist"
             )
 
+        # append the current cc id and the node id for this component
         for n in currentnx.nodes():
             idlist.append(n)
-            cclist.append(str(netid))
+            cclist.append(str(netid).zfill(9))
 
     out = pd.DataFrame(zip(cclist, idlist), columns=["cluster_id", "node_id"])
 
