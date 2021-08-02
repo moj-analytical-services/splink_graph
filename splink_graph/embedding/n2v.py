@@ -14,6 +14,7 @@ from node2vec import Node2Vec
 import networkx as nx
 import ast
 import numpy as np
+import pandas as pd
 
 
 def _node2vec_embedding(
