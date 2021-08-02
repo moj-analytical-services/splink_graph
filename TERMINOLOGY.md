@@ -93,12 +93,17 @@ the second graph is also connected by an edge in the same way.
 Graph 1 and Graph 2 above are isomorphic. 
 The correspondance between nodes is illustrated by the node colors and numbers.
 
-`node2vec shallow graph embedding` 
+`node2vec "shallow" graph embedding` 
 
-This is a per cluster method for creating low-dimensional embeddings for nodes in a graph by optimizing a neighborhood-preserving objective. 
-The aim is to learn similar embeddings for neighboring nodes, with respect to the graph structure.
+This is a per-cluster method for creating low-dimensional embeddings for nodes in a graph.
+The aim is to create similar embeddings for neighboring nodes, with respect to the graph structure.
 
 ![](https://github.com/moj-analytical-services/splink_graph/raw/master/notebooks/node2vec_detail.png)
+
+
+However this is a ‘transductive’ task where embeddings are created for ‘one graph’, 
+limited to the given graph and that cannot be generalised.
+
 
 
 ---
