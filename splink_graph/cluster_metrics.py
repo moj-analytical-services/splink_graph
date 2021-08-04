@@ -176,7 +176,6 @@ def cluster_connectivity_stats(
     sparkdf,
     src="src",
     dst="dst",
-    distance_colname="distance",
     cluster_id_colname="cluster_id",
 ):
     """outputs connectivity metrics per cluster_id
@@ -185,18 +184,12 @@ def cluster_connectivity_stats(
             sparkdf: imput edgelist Spark DataFrame
             src: src column name
             dst: dst column name
-            distance_colname: distance column name
             cluster_id_colname: Graphframes-created connected components created cluster_id
 
         Returns:
 
             node_conn: Node Connectivity measures the minimal number of vertices that can be removed to disconnect the graph.
             edge_conn: Edge connectivity measures the minimal number of edges that can be removed to disconnect the graph.
-            algebraic connectivity:
-            efficiency: The global efficiency of a grpah is the average inverse distance between all pairs of nodes in the graph.
-
-
-
 
 
         The larger these metrics are --> the more connected the subggraph is.
@@ -226,7 +219,6 @@ def cluster_connectivity_stats(
 
     psrc = src
     pdst = dst
-    pdistance = distance_colname
 
     @pandas_udf(
         StructType(
@@ -234,8 +226,7 @@ def cluster_connectivity_stats(
                 StructField("cluster_id", LongType()),
                 StructField("node_conn", IntegerType()),
                 StructField("edge_conn", IntegerType()),
-                StructField("algebraic_conn", FloatType()),
-                StructField("global_efficiency", FloatType()),
+
             ]
         ),
         functionType=PandasUDFType.GROUPED_MAP,
@@ -243,25 +234,19 @@ def cluster_connectivity_stats(
     def conn_eff(pdf: pd.DataFrame) -> pd.DataFrame:
 
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
 
         nc = nx.algorithms.node_connectivity(nxGraph)
         ec = nx.algorithms.edge_connectivity(nxGraph)
-        ge = round(nx.global_efficiency(nxGraph), 3)
-
-        lapl_spc = _laplacian_spectrum(nxGraph)
-        ac = round(lapl_spc[1], 3)  # calculate algebraic connectivity
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[co] + [nc] + [ec] + [ac] + [ge]],
+            [[co] + [nc] + [ec]],
             columns=[
                 "cluster_id",
                 "node_conn",
                 "edge_conn",
-                "algebraic_conn",
-                "global_efficiency",
             ],
         )
 

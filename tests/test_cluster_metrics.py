@@ -397,14 +397,12 @@ def test_cluster_connectivity_stats_completegraph(spark):
         e_df,
         src="src",
         dst="dst",
-        distance_colname="distance",
         cluster_id_colname="cluster_id",
     ).toPandas()
 
-    assert df_result["global_efficiency"][0] == pytest.approx(0.967, 0.001)
     assert df_result["node_conn"][0] == 4
     assert df_result["edge_conn"][0] == 4
-    assert df_result["algebraic_conn"][0] == 4
+
 
 
 def test_cluster_connectivity_stats_linegraph(spark):
@@ -424,14 +422,11 @@ def test_cluster_connectivity_stats_linegraph(spark):
         e_df,
         src="src",
         dst="dst",
-        distance_colname="distance",
         cluster_id_colname="cluster_id",
     ).toPandas()
 
-    assert df_result["global_efficiency"][0] == pytest.approx(0.531, 0.001)
     assert df_result["node_conn"][0] == 1
     assert df_result["edge_conn"][0] == 1
-    assert df_result["algebraic_conn"][0] < 0.2
 
 
 def test_number_of_bridges(spark):
