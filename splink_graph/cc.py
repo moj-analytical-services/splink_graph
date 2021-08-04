@@ -90,12 +90,12 @@ def nx_connected_components(
     idlist = []
 
     for c in nx.connected_components(nxGraph):
-        netid = netid + 1 # go to next conn comp id
+        netid = netid + 1  # go to next conn comp id
 
         # create a graph from this connected component
         currentnx = nxGraph.subgraph(c)
 
-        # if we need to write the edgelist of the component to a directory do so. 
+        # if we need to write the edgelist of the component to a directory do so.
         if edgelistdir is not None:
             os.makedirs(edgelistdir, exist_ok=True)
             nx.write_edgelist(
