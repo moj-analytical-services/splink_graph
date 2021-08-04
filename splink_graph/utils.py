@@ -247,11 +247,11 @@ def _from_weighted_graphframe_to_nxGraph(g):
 
 # read a directory of edgelist files and import them into networkx graphs
 def read_edgelists_from_dir(directory):
-    
+
     listofnxgraphs = []
     if "/" in directory:
         directory = directory.strip("/")
-    
+
     for filename in os.listdir(directory):
         if filename.endswith("edgelist"):
 

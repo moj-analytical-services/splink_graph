@@ -173,10 +173,7 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
 
 
 def cluster_connectivity_stats(
-    sparkdf,
-    src="src",
-    dst="dst",
-    cluster_id_colname="cluster_id",
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
 ):
     """outputs connectivity metrics per cluster_id
 
@@ -226,7 +223,6 @@ def cluster_connectivity_stats(
                 StructField("cluster_id", LongType()),
                 StructField("node_conn", IntegerType()),
                 StructField("edge_conn", IntegerType()),
-
             ]
         ),
         functionType=PandasUDFType.GROUPED_MAP,
@@ -235,19 +231,13 @@ def cluster_connectivity_stats(
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
-
         nc = nx.algorithms.node_connectivity(nxGraph)
         ec = nx.algorithms.edge_connectivity(nxGraph)
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[co] + [nc] + [ec]],
-            columns=[
-                "cluster_id",
-                "node_conn",
-                "edge_conn",
-            ],
+            [[co] + [nc] + [ec]], columns=["cluster_id", "node_conn", "edge_conn",],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(conn_eff)

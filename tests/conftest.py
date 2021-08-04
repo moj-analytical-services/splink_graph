@@ -6,6 +6,7 @@ from pyspark.sql import types
 import os
 from functools import lru_cache
 
+
 @lru_cache(maxsize=None)
 @pytest.fixture(scope="function")
 def spark():
