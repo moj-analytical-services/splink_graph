@@ -94,10 +94,11 @@ Edge metrics curretnly offered:
 
 - [x] release for MVP to be used on AWS glue and demos
 - [x] cluster modularity based on partitions created by edge-betweenness
-- [ ] cluster modularity based on partitions created by spectral cut
+- [ ] cluster number of bridges metric added
 - [x] cluster modularity based on partitions created by label propagation
 - [ ] shallow embeddings of subgraphs/clusters (WIP)
 - [x] Add a connected components function (from the graphframes library)
+- [x] Add a connected components function for smaller graphs (from the networkx library) so its easier to get started.
 
 
 For upcoming functionality further down the line please consult the `TODO.md` file

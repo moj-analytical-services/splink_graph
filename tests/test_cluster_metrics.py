@@ -1,5 +1,5 @@
 from pyspark.sql import Row
-
+import networkx as nx
 from splink_graph.cluster_metrics import (
     cluster_main_stats,
     cluster_basic_stats,
@@ -11,6 +11,7 @@ from splink_graph.cluster_metrics import (
 )
 
 import pytest
+import pandas as pd
 import pyspark.sql.functions as f
 
 
@@ -453,3 +454,27 @@ def test_number_of_bridges(spark):
 
     num_bridges_cluster_2 = out[filter_cluster_2].iloc[0]["number_of_bridges"]
     assert num_bridges_cluster_2 == 4
+
+
+def test_four_bridges(spark):
+    
+    g = nx.barbell_graph(5,3)
+    fourbridges = pd.DataFrame(list(g.edges),columns=["src","dst"])
+    fourbridges["weight"]=1.0
+    fourbridges["cluster_id"]=1
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame(
+        fourbridges,
+        ["src", "dst", "weight", "cluster_id"],
+    )
+
+    e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
+
+    result = number_of_bridges(e2_df, cluster_id_colname="cluster_id").toPandas()
+
+
+
+
+    
+    assert result["number_of_bridges"][0] == 4
