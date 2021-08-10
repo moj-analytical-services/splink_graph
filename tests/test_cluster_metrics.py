@@ -453,3 +453,30 @@ def test_number_of_bridges(spark):
 
     num_bridges_cluster_2 = out[filter_cluster_2].iloc[0]["number_of_bridges"]
     assert num_bridges_cluster_2 == 4
+
+
+def test_zero_bridges(spark):
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame(
+        [
+            ("a", "b", 0.84, 2),
+            ("a", "c", 0.65, 2),
+            ("a", "d", 0.67, 2),
+            ("b", "c", 0.34, 2),
+            ("b", "d", 0.99, 2),
+            ("c", "d", 0.5, 2),
+        ],
+        ["src", "dst", "weight", "clus_id"],
+    )
+
+    e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
+
+    out = number_of_bridges(e2_df, cluster_id_colname="clus_id").toPandas()
+
+
+    fcluster_2 = out["cluster_id"] == 2
+
+
+    num_bridges_of_cluster_2_should_be_zero = out[fcluster_2].iloc[0]["number_of_bridges"]
+    assert num_bridges_of_cluster_2_should_be_zero == 0
