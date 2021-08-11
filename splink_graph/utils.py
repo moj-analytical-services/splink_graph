@@ -31,7 +31,7 @@ def _create_spark_jars_string():
         )
     else:
         spark_jars_string = sitestr + "jars/graphframes-0.8.0-spark3.0-s_2.12"
-    return spark_jars_string
+    return spark_jars_string.replace(" ", "")
 
 
 def _graphharmoniser(sparkdf, colsrc, coldst):

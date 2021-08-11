@@ -94,7 +94,7 @@ Edge metrics curretnly offered:
 
 - [x] release for MVP to be used on AWS glue and demos
 - [x] cluster modularity based on partitions created by edge-betweenness
-- [ ] cluster number of bridges metric added
+- [x] cluster number of bridges metric added
 - [x] cluster modularity based on partitions created by label propagation
 - [ ] shallow embeddings of subgraphs/clusters (WIP)
 - [x] Add a connected components function (from the graphframes library)
