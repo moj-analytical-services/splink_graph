@@ -473,8 +473,24 @@ def test_four_bridges(spark):
 
     result = number_of_bridges(e2_df, cluster_id_colname="cluster_id").toPandas()
 
-
-
-
-    
     assert result["number_of_bridges"][0] == 4
+    
+    
+def test_0_bridges(spark):
+    
+    g = nx.complete_graph(9)
+    zerobridges = pd.DataFrame(list(g.edges),columns=["src","dst"])
+    zerobridges["weight"]=1.0
+    zerobridges["cluster_id"]=1
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame(
+        zerobridges,
+        ["src", "dst", "weight", "cluster_id"],
+    )
+
+    e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
+
+    result = number_of_bridges(e2_df, cluster_id_colname="cluster_id").toPandas()
+
+    assert result["number_of_bridges"][0] == 0
