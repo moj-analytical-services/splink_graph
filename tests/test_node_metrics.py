@@ -2,6 +2,7 @@ from pyspark.sql import Row
 from splink_graph.node_metrics import eigencentrality, harmoniccentrality
 import pytest
 import pandas as pd
+import networkx as nx
 from pandas.testing import assert_frame_equal
 import pyspark.sql.functions as f
 import json
@@ -22,6 +23,25 @@ def test_eigencentrality_simple(spark):
 
     assert df_result["eigen_centrality"][0] == pytest.approx(0.50000, 0.01)
 
+
+def test_eigencentrality_star(spark):
+    
+    g = nx.star_graph(8)
+    star = pd.DataFrame(list(g.edges),columns=["src","dst"])
+    star["weight"]=1.0
+    star["cluster_id"]=1
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e_df = spark.createDataFrame(
+        star,
+        ["src", "dst", "weight", "cluster_id"],
+    )
+
+    df_result = eigencentrality(e_df).toPandas()
+
+    #assert df_result["eigen_centrality"][0] == pytest.approx(0.50000, 0.01)
+    
+    
 
 def test_eigencentrality_customcolname(spark):
 
@@ -82,3 +102,5 @@ def test_harmoniccentrality_customcolname(spark):
 
     f1 = df_result["node_id"] == "a"
     assert df_result.loc[f1, "clus_id"][0] == 1
+
+    
