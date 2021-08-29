@@ -28,6 +28,7 @@ def test_eigencentrality_star(spark):
     
     g = nx.star_graph(8)
     star = pd.DataFrame(list(g.edges),columns=["src","dst"])
+    star= star.astype({'src': str,'dst': str })
     star["weight"]=1.0
     star["cluster_id"]=1
 
