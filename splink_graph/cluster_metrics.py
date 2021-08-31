@@ -14,12 +14,8 @@ from networkx.algorithms.distance_measures import diameter
 from networkx.algorithms.cluster import transitivity
 from networkx.algorithms.centrality import edge_betweenness_centrality
 from networkx.algorithms.bridges import bridges
-
 from networkx.algorithms.community.centrality import girvan_newman
-from networkx.algorithms.graph_hashing import weisfeiler_lehman_graph_hash
-
 import pandas as pd
-
 from splink_graph.utils import _laplacian_spectrum
 
 # Read on how to setup spark to work around with pandas udf:
@@ -84,10 +80,43 @@ def cluster_basic_stats(
     return output
 
 
+def cluster_graph_hash(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
+    """calculate weisfeiler-lehman graph hash of a cluster
+
+
+        Args:
+            sparkdf: imput edgelist Spark DataFrame
+            src: src column name
+            dst: dst column name
+            cluster_id_colname: Graphframes-created connected components created cluster_id
+            """
+    psrc = src
+    pdst = dst
+
+    @pandas_udf(
+        StructType(
+            [
+                StructField("cluster_id", LongType()),
+                StructField("graphhash", StringType()),
+            ]
+        ),
+        functionType=PandasUDFType.GROUPED_MAP,
+    )
+    def gh(pdf: pd.DataFrame) -> pd.DataFrame:
+
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
+        h = nx.weisfeiler_lehman_graph_hash(nxGraph)
+        co = pdf[cluster_id_colname].iloc[0]  # access component id
+
+        return pd.DataFrame([[co] + [h]], columns=["cluster_id", "graphhash",],)
+
+    out = sparkdf.groupby(cluster_id_colname).apply(gh)
+    return out
+
+
 def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
     """calculate diameter / transitivity(GCC) / triangle clustering coefficient LCC / square clustering coeff
-        and the weisfeiler-lehman graph hash of a cluster
-
 
         Args:
             sparkdf: imput edgelist Spark DataFrame
@@ -132,7 +161,6 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
                 StructField("transitivity", FloatType()),
                 StructField("tri_clustcoeff", FloatType()),
                 StructField("sq_clustcoeff", FloatType()),
-                StructField("graphhash", StringType()),
             ]
         ),
         functionType=PandasUDFType.GROUPED_MAP,
@@ -146,19 +174,17 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
         tric = nx.average_clustering(nxGraph)
         sq = nx.square_clustering(nxGraph)
         sqc = sum(sq.values()) / len(sq.values())
-        h = weisfeiler_lehman_graph_hash(nxGraph)
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[co] + [d] + [t] + [tric] + [sqc] + [h]],
+            [[co] + [d] + [t] + [tric] + [sqc]],
             columns=[
                 "cluster_id",
                 "diameter",
                 "transitivity",
                 "tri_clustcoeff",
                 "sq_clustcoeff",
-                "graphhash",
             ],
         )
 

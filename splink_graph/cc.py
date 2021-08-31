@@ -77,8 +77,8 @@ def nx_connected_components(
     cc_threshold=0.90,
     edgelistdir=None,
 ):
-    #Function to use if you have an edge dataframe of up to 2 million rows. 
-    #For bigger dataframes use graphframes_connected_components function
+    # Function to use if you have an edge dataframe of up to 2 million rows.
+    # For bigger dataframes use graphframes_connected_components function
 
     pdf = edges_df.toPandas()
 
@@ -110,7 +110,7 @@ def nx_connected_components(
             cclist.append(str(netid).zfill(9))
 
     out = pd.DataFrame(zip(cclist, idlist), columns=["cluster_id", "node_id"])
-    
-    out["cluster_id"] = out["cluster_id"].astype('int64')
+
+    out["cluster_id"] = out["cluster_id"].astype("int64")
 
     return spark.createDataFrame(out)

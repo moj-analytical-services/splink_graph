@@ -8,6 +8,7 @@ from splink_graph.cluster_metrics import (
     cluster_avg_edge_betweenness,
     cluster_connectivity_stats,
     number_of_bridges,
+    cluster_graph_hash,
 )
 
 import pytest
@@ -57,9 +58,6 @@ def test_cluster_main_stats(spark):
 
     assert df_result["transitivity"][0] == pytest.approx(0, 0.01)
     assert df_result["transitivity"][1] == pytest.approx(0, 0.01)
-
-    assert df_result["graphhash"][0] == "0f43d8cdd43b0b78727b192b6d6d0d0e"
-    assert df_result["graphhash"][1] == "0f43d8cdd43b0b78727b192b6d6d0d0e"
 
 
 def test_cluster_main_stats_customcolname(spark):
@@ -457,40 +455,51 @@ def test_number_of_bridges(spark):
 
 
 def test_four_bridges(spark):
-    
-    g = nx.barbell_graph(5,3)
-    fourbridges = pd.DataFrame(list(g.edges),columns=["src","dst"])
-    fourbridges["weight"]=1.0
-    fourbridges["cluster_id"]=1
+
+    g = nx.barbell_graph(5, 3)
+    fourbridges = pd.DataFrame(list(g.edges), columns=["src", "dst"])
+    fourbridges["weight"] = 1.0
+    fourbridges["cluster_id"] = 1
 
     # Create an Edge DataFrame with "src" and "dst" columns
-    e2_df = spark.createDataFrame(
-        fourbridges,
-        ["src", "dst", "weight", "cluster_id"],
-    )
+    e2_df = spark.createDataFrame(fourbridges, ["src", "dst", "weight", "cluster_id"],)
 
     e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
 
     result = number_of_bridges(e2_df, cluster_id_colname="cluster_id").toPandas()
 
     assert result["number_of_bridges"][0] == 4
-    
-    
+
+
 def test_0_bridges(spark):
-    
+
     g = nx.complete_graph(9)
-    zerobridges = pd.DataFrame(list(g.edges),columns=["src","dst"])
-    zerobridges["weight"]=1.0
-    zerobridges["cluster_id"]=1
+    zerobridges = pd.DataFrame(list(g.edges), columns=["src", "dst"])
+    zerobridges["weight"] = 1.0
+    zerobridges["cluster_id"] = 1
 
     # Create an Edge DataFrame with "src" and "dst" columns
-    e2_df = spark.createDataFrame(
-        zerobridges,
-        ["src", "dst", "weight", "cluster_id"],
-    )
+    e2_df = spark.createDataFrame(zerobridges, ["src", "dst", "weight", "cluster_id"],)
 
     e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
 
     result = number_of_bridges(e2_df, cluster_id_colname="cluster_id").toPandas()
 
     assert result["number_of_bridges"][0] == 0
+
+
+def test_cluster_graph_hash(spark):
+    # Create an Edge DataFrame with "src" and "dst" columns
+    data_list = [
+        {"src": "a", "dst": "b", "weight": 0.4, "cluster_id": 1},
+        {"src": "b", "dst": "c", "weight": 0.56, "cluster_id": 1},
+        {"src": "d", "dst": "e", "weight": 0.2, "cluster_id": 2},
+        {"src": "f", "dst": "e", "weight": 0.8, "cluster_id": 2},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_graph_hash(
+        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert df_result["graphhash"][0] == "0f43d8cdd43b0b78727b192b6d6d0d0e"
