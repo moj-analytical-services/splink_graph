@@ -93,7 +93,7 @@ example output spark dataframe
     def eigenc(pdf: pd.DataFrame) -> pd.DataFrame:
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
-        ec = eigenvector_centrality(nxGraph,tol=1e-03)
+        ec = eigenvector_centrality(nxGraph, tol=1e-03)
         out_df = (
             pd.DataFrame.from_dict(ec, orient="index", columns=["eigen_centrality"])
             .reset_index()

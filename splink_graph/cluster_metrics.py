@@ -15,11 +15,7 @@ from networkx.algorithms.cluster import transitivity
 from networkx.algorithms.centrality import edge_betweenness_centrality
 from networkx.algorithms.bridges import bridges
 from networkx.algorithms.community.centrality import girvan_newman
-
-#from nh import weisfeiler_lehman_graph_hash
-
 import pandas as pd
-
 from splink_graph.utils import _laplacian_spectrum
 
 # Read on how to setup spark to work around with pandas udf:
@@ -112,20 +108,11 @@ def cluster_graph_hash(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         h = nx.weisfeiler_lehman_graph_hash(nxGraph)
         co = pdf[cluster_id_colname].iloc[0]  # access component id
-        
-        return pd.DataFrame(
-            [[co] + [h]],
-            columns=[
-                "cluster_id",
-                "graphhash",
-            ],
-        )
+
+        return pd.DataFrame([[co] + [h]], columns=["cluster_id", "graphhash",],)
 
     out = sparkdf.groupby(cluster_id_colname).apply(gh)
     return out
-
-
-
 
 
 def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
@@ -187,7 +174,6 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
         tric = nx.average_clustering(nxGraph)
         sq = nx.square_clustering(nxGraph)
         sqc = sum(sq.values()) / len(sq.values())
-    
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
