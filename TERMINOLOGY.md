@@ -53,6 +53,10 @@ weighted: The edges with the least traversal cost between two specific vertices/
 
 The diameter of a graph is the largest of the shortest distances in that graph
 
+`Betweenness centrality`
+
+In graph theory, betweenness centrality (or "betweeness centrality") is a measure of centrality in a graph based on shortest paths. For every pair of vertices in a connected graph, there exists at least one shortest path between the vertices such that either the number of edges that the path passes through (for unweighted graphs) or the sum of the weights of the edges (for weighted graphs) is minimized. The betweenness centrality for each vertex is the number of these shortest paths that pass through the vertex.
+
 `transitivity` (or `Global Clustering Coefficient` in the related literature)
 
 The global clustering coefficient is based on triplets of nodes in a graph. A triplet consists of three connected nodes. 
