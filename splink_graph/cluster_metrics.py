@@ -527,8 +527,7 @@ def cluster_avg_edge_betweenness(
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
         w = nx.wiener_index(nxGraph)
-        
-        
+
         edge_btwn = edge_betweenness_centrality(nxGraph, normalized=True)
 
         if len(edge_btwn) > 0:
@@ -538,7 +537,9 @@ def cluster_avg_edge_betweenness(
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
-        return pd.DataFrame([[co] + [aeb]+ [w]], columns=["cluster_id", "avg_cluster_eb","wiener_ind"])
+        return pd.DataFrame(
+            [[co] + [aeb] + [w]], columns=["cluster_id", "avg_cluster_eb", "wiener_ind"]
+        )
 
     out = sparkdf.groupby(cluster_id_colname).apply(avg_eb)
 
@@ -625,7 +626,10 @@ def number_of_bridges(
     out = indf.groupby(cluster_id_colname).apply(br_p_udf)
     return out
 
-def cluster_assortativity(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
+
+def cluster_assortativity(
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"
+):
     """calculate assortativity of a cluster
 
         Args:
@@ -673,27 +677,21 @@ def cluster_assortativity(sparkdf, src="src", dst="dst", cluster_id_colname="clu
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
-        
+
         r = nx.degree_pearson_correlation_coefficient(nxGraph)
-        
-        # when all degrees are equal (grids or full graphs) assortativity is undefined/nan 
+
+        # when all degrees are equal (grids or full graphs) assortativity is undefined/nan
         # However we can think this case as fully correlated so we put it as 1
-        
+
         if math.isnan(r):
-            r=1.0    
+            r = 1.0
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
-        return pd.DataFrame(
-            [[co] + [r]],
-            columns=[
-                "cluster_id",
-                "assortativity",
-            ],
-        )
+        return pd.DataFrame([[co] + [r]], columns=["cluster_id", "assortativity",],)
 
     out = sparkdf.groupby(cluster_id_colname).apply(drt)
 
     out = out.withColumn("assortativity", f.round(f.col("assortativity"), 3))
-  
+
     return out
