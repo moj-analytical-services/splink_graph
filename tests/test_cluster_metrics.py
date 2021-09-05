@@ -9,9 +9,11 @@ from splink_graph.cluster_metrics import (
     cluster_connectivity_stats,
     number_of_bridges,
     cluster_graph_hash,
+    cluster_assortativity
 )
 
 import pytest
+import math
 import pandas as pd
 import pyspark.sql.functions as f
 
@@ -503,3 +505,58 @@ def test_cluster_graph_hash(spark):
     ).toPandas()
 
     assert df_result["graphhash"][0] == "0f43d8cdd43b0b78727b192b6d6d0d0e"
+    
+
+def test_cluster_assortativity_neg(spark):
+    # Create an Edge DataFrame with "src" and "dst" columns
+    data_list = [
+        {"src": "a", "dst": "b", "weight": 0.4, "cluster_id": 1},
+        {"src": "b", "dst": "c", "weight": 0.56, "cluster_id": 1},
+        {"src": "d", "dst": "e", "weight": 0.2, "cluster_id": 2},
+        {"src": "f", "dst": "e", "weight": 0.8, "cluster_id": 2},
+    ]
+
+    e_df = spark.createDataFrame(Row(**x) for x in data_list)
+    df_result = cluster_assortativity(
+        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+    ).toPandas()
+    
+    
+    assert df_result["assortativity"][0] < 0.0
+    
+    
+def test_cluster_assortativity_pos(spark):
+    # Create an Edge DataFrame with "src" and "dst" columns from a graph generator
+    g = nx.barbell_graph(5, 3)
+    barb = pd.DataFrame(list(g.edges), columns=["src", "dst"])
+    
+    barb["cluster_id"] = 1
+    
+    # Create an spark Edge DataFrame with "src" and "dst" columns
+    e_df = spark.createDataFrame(barb, ["src", "dst", "cluster_id"],)
+    
+    df_result = cluster_assortativity(
+        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+    ).toPandas()
+    
+    assert df_result["assortativity"][0] > 0.0
+    
+    
+def test_cluster_assortativity_fully(spark):
+    # Create an Edge DataFrame with "src" and "dst" columns from a graph generator
+    
+    g = nx.complete_graph(9)
+    zerobridges = pd.DataFrame(list(g.edges), columns=["src", "dst"])
+    zerobridges["cluster_id"] = 1
+    
+    # Create an spark Edge DataFrame with "src" and "dst" columns
+
+    e_df = spark.createDataFrame(zerobridges, ["src", "dst", "cluster_id"],)
+    
+    df_result = cluster_assortativity(
+        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+    ).toPandas()
+    
+    # when all degrees are equal (grids or full graphs) assortativity is nan
+    assert  df_result["assortativity"][0]==1
+    

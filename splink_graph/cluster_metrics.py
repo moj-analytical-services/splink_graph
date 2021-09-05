@@ -16,6 +16,7 @@ from networkx.algorithms.centrality import edge_betweenness_centrality
 from networkx.algorithms.bridges import bridges
 from networkx.algorithms.community.centrality import girvan_newman
 import pandas as pd
+import math
 from splink_graph.utils import _laplacian_spectrum
 
 # Read on how to setup spark to work around with pandas udf:
@@ -516,6 +517,7 @@ def cluster_avg_edge_betweenness(
             [
                 StructField("cluster_id", LongType()),
                 StructField("avg_cluster_eb", FloatType()),
+                StructField("wiener_ind", FloatType()),
             ]
         ),
         functionType=PandasUDFType.GROUPED_MAP,
@@ -524,6 +526,9 @@ def cluster_avg_edge_betweenness(
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+        w = nx.wiener_index(nxGraph)
+        
+        
         edge_btwn = edge_betweenness_centrality(nxGraph, normalized=True)
 
         if len(edge_btwn) > 0:
@@ -533,7 +538,7 @@ def cluster_avg_edge_betweenness(
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
-        return pd.DataFrame([[co] + [aeb]], columns=["cluster_id", "avg_cluster_eb",],)
+        return pd.DataFrame([[co] + [aeb]+ [w]], columns=["cluster_id", "avg_cluster_eb","wiener_ind"])
 
     out = sparkdf.groupby(cluster_id_colname).apply(avg_eb)
 
@@ -618,4 +623,77 @@ def number_of_bridges(
 
     indf = sparkdf.select(psrc, pdst, pweight, pdistance, pcomponent)
     out = indf.groupby(cluster_id_colname).apply(br_p_udf)
+    return out
+
+def cluster_assortativity(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
+    """calculate assortativity of a cluster
+
+        Args:
+            sparkdf: imput edgelist Spark DataFrame
+            src: src column name
+            dst: dst column name
+            cluster_id_colname: Graphframes-created connected components created cluster_id
+
+
+
+        input spark dataframe:
+
+
+    |src|dst|weight|cluster_id|distance|
+    |---|---|------|----------|--------|
+    |  f|  d|  0.67|         0| 0.329|
+    |  f|  g|  0.34|         0| 0.659|
+    |  b|  c|  0.56|8589934592| 0.439|
+    |  g|  h|  0.99|         0|0.010|
+    |  a|  b|   0.4|8589934592|0.6|
+    |  h|  i|   0.5|         0|0.5|
+    |  h|  j|   0.8|         0| 0.199|
+    |  d|  e|  0.84|         0| 0.160|
+    |  e|  f|  0.65|         0|0.35|
+
+
+
+        output spark dataframe:
+
+    """
+
+    psrc = src
+    pdst = dst
+
+    @pandas_udf(
+        StructType(
+            [
+                StructField("cluster_id", LongType()),
+                StructField("assortativity", FloatType()),
+            ]
+        ),
+        functionType=PandasUDFType.GROUPED_MAP,
+    )
+    def drt(pdf: pd.DataFrame) -> pd.DataFrame:
+
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
+        
+        r = nx.degree_pearson_correlation_coefficient(nxGraph)
+        
+        # when all degrees are equal (grids or full graphs) assortativity is undefined/nan 
+        # However we can think this case as fully correlated so we put it as 1
+        
+        if math.isnan(r):
+            r=1.0    
+
+        co = pdf[cluster_id_colname].iloc[0]  # access component id
+
+        return pd.DataFrame(
+            [[co] + [r]],
+            columns=[
+                "cluster_id",
+                "assortativity",
+            ],
+        )
+
+    out = sparkdf.groupby(cluster_id_colname).apply(drt)
+
+    out = out.withColumn("assortativity", f.round(f.col("assortativity"), 3))
+  
     return out
