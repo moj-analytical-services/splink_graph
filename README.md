@@ -58,6 +58,7 @@ Cluster metrics currently offered:
 - cluster edge connectivity
 - cluster efficiency
 - cluster modularity
+- cluster assortativity
 - cluster avg edge betweenness
 - cluster weisfeiler lehman graphhash (in order to quickly test for graph isomorphisms)
 
@@ -95,6 +96,7 @@ Edge metrics curretnly offered:
 - [x] release for MVP to be used on AWS glue and demos
 - [x] cluster modularity based on partitions created by edge-betweenness
 - [x] cluster number of bridges metric added
+- [x] cluster assortativity added
 - [x] cluster modularity based on partitions created by label propagation
 - [ ] shallow embeddings of subgraphs/clusters (WIP)
 - [x] Add a connected components function (from the graphframes library)

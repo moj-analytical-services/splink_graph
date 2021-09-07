@@ -49,6 +49,12 @@ So all in all : either PyArrow needs to be at most in version 0.14.1 or if that 
 
 
 
+### problems installing splink_graph as during installation gensim requirement install fails 
+
+Please install the following before trying to install splink_graph
+
+`pip install gensim==3.8.3`
+
 ### Using Pandas UDFs in Python in Pyspark 3.x
 
 No need for any special configuration.
