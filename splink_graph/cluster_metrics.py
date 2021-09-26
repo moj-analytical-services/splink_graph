@@ -71,10 +71,10 @@ def cluster_basic_stats(
     # density related calcs based on nodecount and max possible number of edges in an undirected graph
 
     output = output.withColumn(
-        "maxNumberOfEdgesundir", f.col("nodecount") * (f.col("nodecount") - 1.0) / 2.0,
+        "maxNumberOfEdgesundir", f.expr("(nodecount*(nodecount-1)/2")
     )
     output = output.withColumn(
-        "density", f.round(f.col("edgecount") / f.col("maxNumberOfEdgesundir"), 3)
+        "density", f.expr("edgecount/maxNumberOfEdgesundir") 
     ).drop("sources", "destinations", "maxNumberOfEdgesundir")
     output = output.withColumnRenamed(cluster_id_colname, "cluster_id")
 
