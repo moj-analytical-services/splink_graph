@@ -550,8 +550,6 @@ def number_of_bridges(
     sparkdf,
     src="src",
     dst="dst",
-    weight_colname="weight",
-    distance_colname="distance",
     cluster_id_colname="cluster_id",
 ):
 
@@ -561,7 +559,6 @@ def number_of_bridges(
             sparkdf: imput edgelist Spark DataFrame
             src: src column name
             dst: dst column name
-            distance_colname: distance column name
             cluster_id_colname: Graphframes-created connected components created cluster_id
 
      Returns:
@@ -572,17 +569,17 @@ def number_of_bridges(
 
     example input spark dataframe
 
-    |src|dst|weight|cluster_id|distance|
-    +---|---|------|----------|--------|
-    |  f|  d|  0.67|         0|0.329   |
-    |  f|  g|  0.34|         0|0.659   |
-    |  b|  c|  0.56|8589934592| 0.439  |
-    |  g|  h|  0.99|         0|0.010   |
-    |  a|  b|   0.4|8589934592|0.6     |
-    |  h|  i|   0.5|         0|0.5     |
-    |  h|  j|   0.8|         0| 0.199  |
-    |  d|  e|  0.84|         0| 0.160  |
-    |  e|  f|  0.65|         0|0.35    |
+    |src|dst|cluster_id|
+    +---|---|----------|
+    |  f|  d|         0|
+    |  f|  g|         0|
+    |  b|  c|8589934592|
+    |  g|  h|         0|
+    |  a|  b|8589934592|
+    |  h|  i|         0|
+    |  h|  j|         0|
+    |  d|  e|         0|
+    |  e|  f|         0|
 
 
     example output spark dataframe
@@ -597,8 +594,6 @@ def number_of_bridges(
     """
     psrc = src
     pdst = dst
-    pweight = weight_colname
-    pdistance = distance_colname
     pcomponent = cluster_id_colname
 
     bridgesoutSchema = StructType(
@@ -614,7 +609,7 @@ def number_of_bridges(
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, pdistance)
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
 
         b = bridges(nxGraph)
 
@@ -622,7 +617,7 @@ def number_of_bridges(
 
         return pd.DataFrame(data)
 
-    indf = sparkdf.select(psrc, pdst, pweight, pdistance, pcomponent)
+    indf = sparkdf.select(psrc, pdst, pcomponent)
     out = indf.groupby(cluster_id_colname).apply(br_p_udf)
     return out
 
