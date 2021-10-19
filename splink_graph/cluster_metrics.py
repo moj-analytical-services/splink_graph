@@ -85,12 +85,12 @@ def cluster_graph_hash(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
     """calculate weisfeiler-lehman graph hash of a cluster
 
 
-        Args:
-            sparkdf: imput edgelist Spark DataFrame
-            src: src column name
-            dst: dst column name
-            cluster_id_colname: Graphframes-created connected components created cluster_id
-            """
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        cluster_id_colname: Graphframes-created connected components created cluster_id
+    """
     psrc = src
     pdst = dst
 
@@ -110,7 +110,13 @@ def cluster_graph_hash(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
         h = nx.weisfeiler_lehman_graph_hash(nxGraph)
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
-        return pd.DataFrame([[co] + [h]], columns=["cluster_id", "graphhash",],)
+        return pd.DataFrame(
+            [[co] + [h]],
+            columns=[
+                "cluster_id",
+                "graphhash",
+            ],
+        )
 
     out = sparkdf.groupby(cluster_id_colname).apply(gh)
     return out
@@ -200,7 +206,10 @@ def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
 
 
 def cluster_connectivity_stats(
-    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",
+    sparkdf,
+    src="src",
+    dst="dst",
+    cluster_id_colname="cluster_id",
 ):
     """outputs connectivity metrics per cluster_id
 
@@ -250,6 +259,7 @@ def cluster_connectivity_stats(
                 StructField("cluster_id", LongType()),
                 StructField("node_conn", IntegerType()),
                 StructField("edge_conn", IntegerType()),
+                StructField("degeneracy", IntegerType()),
             ]
         ),
         functionType=PandasUDFType.GROUPED_MAP,
@@ -260,11 +270,13 @@ def cluster_connectivity_stats(
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
         nc = nx.algorithms.node_connectivity(nxGraph)
         ec = nx.algorithms.edge_connectivity(nxGraph)
+        dg = max(nx.core_number(nxGraph).values())
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[co] + [nc] + [ec]], columns=["cluster_id", "node_conn", "edge_conn",],
+            [[co] + [nc] + [ec] + [dg]],
+            columns=["cluster_id", "node_conn", "edge_conn", "degeneracy"],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(conn_eff)
@@ -371,7 +383,11 @@ def cluster_eb_modularity(
             co_eb_mod = -1.0
 
         return pd.DataFrame(
-            [[co] + [co_eb_mod]], columns=["cluster_id", "cluster_eb_modularity",],
+            [[co] + [co_eb_mod]],
+            columns=[
+                "cluster_id",
+                "cluster_eb_modularity",
+            ],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(cluster_eb_m)
@@ -460,7 +476,11 @@ def cluster_lpg_modularity(
         co_lpg_mod = nx_comm.modularity(nxGraph, gn)
 
         return pd.DataFrame(
-            [[co] + [co_lpg_mod]], columns=["cluster_id", "cluster_lpg_modularity",],
+            [[co] + [co_lpg_mod]],
+            columns=[
+                "cluster_id",
+                "cluster_lpg_modularity",
+            ],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(cluster_lpg_m)
@@ -668,7 +688,7 @@ def cluster_assortativity(
         ),
         functionType=PandasUDFType.GROUPED_MAP,
     )
-    def drt(pdf: pd.DataFrame) -> pd.DataFrame:
+    def asrt(pdf: pd.DataFrame) -> pd.DataFrame:
 
         nxGraph = nx.Graph()
         nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst)
@@ -683,9 +703,15 @@ def cluster_assortativity(
 
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
-        return pd.DataFrame([[co] + [r]], columns=["cluster_id", "assortativity",],)
+        return pd.DataFrame(
+            [[co] + [r]],
+            columns=[
+                "cluster_id",
+                "assortativity",
+            ],
+        )
 
-    out = sparkdf.groupby(cluster_id_colname).apply(drt)
+    out = sparkdf.groupby(cluster_id_colname).apply(asrt)
 
     out = out.withColumn("assortativity", f.round(f.col("assortativity"), 3))
 

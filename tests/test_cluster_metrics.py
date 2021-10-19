@@ -395,11 +395,15 @@ def test_cluster_connectivity_stats_completegraph(spark):
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     df_result = cluster_connectivity_stats(
-        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
     ).toPandas()
 
     assert df_result["node_conn"][0] == 4
     assert df_result["edge_conn"][0] == 4
+    assert df_result["degeneracy"][0] == 4
 
 
 def test_cluster_connectivity_stats_linegraph(spark):
@@ -416,11 +420,42 @@ def test_cluster_connectivity_stats_linegraph(spark):
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     df_result = cluster_connectivity_stats(
-        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
     ).toPandas()
 
     assert df_result["node_conn"][0] == 1
     assert df_result["edge_conn"][0] == 1
+    assert df_result["degeneracy"][0] == 1
+
+
+def test_connectivity_degen_barbell(spark):
+
+    g = nx.barbell_graph(5, 3)
+    fourbridges = pd.DataFrame(list(g.edges), columns=["src", "dst"])
+    fourbridges["weight"] = 1.0
+    fourbridges["cluster_id"] = 1
+
+    # Create an Edge DataFrame with "src" and "dst" columns
+    e2_df = spark.createDataFrame(
+        fourbridges,
+        ["src", "dst", "weight", "cluster_id"],
+    )
+
+    e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
+
+    df_result = cluster_connectivity_stats(
+        e2_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    assert df_result["node_conn"][0] == 1
+    assert df_result["edge_conn"][0] == 1
+    assert df_result["degeneracy"][0] == 4
 
 
 def test_number_of_bridges(spark):
@@ -464,7 +499,10 @@ def test_four_bridges(spark):
     fourbridges["cluster_id"] = 1
 
     # Create an Edge DataFrame with "src" and "dst" columns
-    e2_df = spark.createDataFrame(fourbridges, ["src", "dst", "weight", "cluster_id"],)
+    e2_df = spark.createDataFrame(
+        fourbridges,
+        ["src", "dst", "weight", "cluster_id"],
+    )
 
     e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
 
@@ -481,7 +519,10 @@ def test_0_bridges(spark):
     zerobridges["cluster_id"] = 1
 
     # Create an Edge DataFrame with "src" and "dst" columns
-    e2_df = spark.createDataFrame(zerobridges, ["src", "dst", "weight", "cluster_id"],)
+    e2_df = spark.createDataFrame(
+        zerobridges,
+        ["src", "dst", "weight", "cluster_id"],
+    )
 
     e2_df = e2_df.withColumn("distance", 1.0 - f.col("weight"))
 
@@ -501,7 +542,10 @@ def test_cluster_graph_hash(spark):
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     df_result = cluster_graph_hash(
-        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
     ).toPandas()
 
     assert df_result["graphhash"][0] == "0f43d8cdd43b0b78727b192b6d6d0d0e"
@@ -518,7 +562,10 @@ def test_cluster_assortativity_neg(spark):
 
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
     df_result = cluster_assortativity(
-        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
     ).toPandas()
 
     assert df_result["assortativity"][0] < 0.0
@@ -532,10 +579,16 @@ def test_cluster_assortativity_pos(spark):
     barb["cluster_id"] = 1
 
     # Create an spark Edge DataFrame with "src" and "dst" columns
-    e_df = spark.createDataFrame(barb, ["src", "dst", "cluster_id"],)
+    e_df = spark.createDataFrame(
+        barb,
+        ["src", "dst", "cluster_id"],
+    )
 
     df_result = cluster_assortativity(
-        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
     ).toPandas()
 
     assert df_result["assortativity"][0] > 0.0
@@ -550,10 +603,16 @@ def test_cluster_assortativity_fully(spark):
 
     # Create an spark Edge DataFrame with "src" and "dst" columns
 
-    e_df = spark.createDataFrame(zerobridges, ["src", "dst", "cluster_id"],)
+    e_df = spark.createDataFrame(
+        zerobridges,
+        ["src", "dst", "cluster_id"],
+    )
 
     df_result = cluster_assortativity(
-        e_df, src="src", dst="dst", cluster_id_colname="cluster_id",
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
     ).toPandas()
 
     # when all degrees are equal (grids or full graphs) assortativity is nan
