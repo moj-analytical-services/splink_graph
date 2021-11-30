@@ -617,3 +617,53 @@ def test_cluster_assortativity_fully(spark):
 
     # when all degrees are equal (grids or full graphs) assortativity is nan
     assert df_result["assortativity"][0] == 1
+
+
+def test_cluster_num_aps_0(spark):
+    # Create an Edge DataFrame with "src" and "dst" columns from a graph generator
+
+    g = nx.complete_graph(9)
+    zerobridges = pd.DataFrame(list(g.edges), columns=["src", "dst"])
+    zerobridges["cluster_id"] = 1
+
+    # Create an spark Edge DataFrame with "src" and "dst" columns
+
+    e_df = spark.createDataFrame(
+        zerobridges,
+        ["src", "dst", "cluster_id"],
+    )
+
+    df_result = cluster_connectivity_stats(
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    # when we have a complete graph num_articulation_pts is 0
+    assert df_result["num_articulation_pts"][0] == 0
+
+
+def test_cluster_num_aps_3(spark):
+    # Create an Edge DataFrame with "src" and "dst" columns from a graph generator
+
+    g = nx.barbell_graph(5, 1)
+    nxgraph = pd.DataFrame(list(g.edges), columns=["src", "dst"])
+    nxgraph["cluster_id"] = 1
+
+    # Create an spark Edge DataFrame with "src" and "dst" columns
+
+    e_df = spark.createDataFrame(
+        nxgraph,
+        ["src", "dst", "cluster_id"],
+    )
+
+    df_result = cluster_connectivity_stats(
+        e_df,
+        src="src",
+        dst="dst",
+        cluster_id_colname="cluster_id",
+    ).toPandas()
+
+    # when we have a complete graph num_articulation_pts is 0
+    assert df_result["num_articulation_pts"][0] == 3

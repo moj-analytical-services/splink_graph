@@ -15,6 +15,7 @@ from networkx.algorithms.cluster import transitivity
 from networkx.algorithms.centrality import edge_betweenness_centrality
 from networkx.algorithms.bridges import bridges
 from networkx.algorithms.community.centrality import girvan_newman
+from networkx.algorithms.components import articulation_points
 import pandas as pd
 import math
 from splink_graph.utils import _laplacian_spectrum
@@ -74,7 +75,7 @@ def cluster_basic_stats(
         "maxNumberOfEdgesundir", f.expr("(nodecount*(nodecount-1))/2")
     )
     output = output.withColumn(
-        "density", f.expr("edgecount/maxNumberOfEdgesundir") 
+        "density", f.expr("edgecount/maxNumberOfEdgesundir")
     ).drop("sources", "destinations", "maxNumberOfEdgesundir")
     output = output.withColumnRenamed(cluster_id_colname, "cluster_id")
 
@@ -260,6 +261,7 @@ def cluster_connectivity_stats(
                 StructField("node_conn", IntegerType()),
                 StructField("edge_conn", IntegerType()),
                 StructField("degeneracy", IntegerType()),
+                StructField("num_articulation_pts", IntegerType()),
             ]
         ),
         functionType=PandasUDFType.GROUPED_MAP,
@@ -272,11 +274,20 @@ def cluster_connectivity_stats(
         ec = nx.algorithms.edge_connectivity(nxGraph)
         dg = max(nx.core_number(nxGraph).values())
 
+        ap = articulation_points(nxGraph)
+        num_aps = len(list(ap))
+
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[co] + [nc] + [ec] + [dg]],
-            columns=["cluster_id", "node_conn", "edge_conn", "degeneracy"],
+            [[co] + [nc] + [ec] + [dg] + [num_aps]],
+            columns=[
+                "cluster_id",
+                "node_conn",
+                "edge_conn",
+                "degeneracy",
+                "num_articulation_pts",
+            ],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(conn_eff)
