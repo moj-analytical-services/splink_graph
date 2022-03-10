@@ -217,13 +217,11 @@ Number of nodes contained within each cluster.
 
         Actual Edges / Maximum Possible Edges
 
-![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/dense_graph.png) 
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/sparse_vs_dense.png) 
 
-<span style="color:green">**High density reflects a well connected graph (see above), meaning your clusters are not problematic.**</span>
+<span style="color:green">**High density reflects a well connected graph (see above), meaning that most likely your clusters are not problematic.**</span>
 
-![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/bridge_graph.png)
-
-<span style="color:red">**Low density means your cluster should be clerically reviewed as this could be a cause for concern.**</span>
+<span style="color:red">**Low density could indicate that the cluster has the topography where there could be spurious links so it should probably be clerically reviewed .**</span>
 
 [crosetetal2015]: [https://academic.oup.com/bioinformatics/article/32/6/918/1743746]
 
