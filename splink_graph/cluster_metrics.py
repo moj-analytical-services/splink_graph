@@ -148,7 +148,7 @@ def cluster_graph_hash_edge_attr(sparkdf, src="src", dst="dst", cluster_id_colna
     )
     def gh_edge_attr(pdf: pd.DataFrame) -> pd.DataFrame:
         
-        if edge_attr_col not None: 
+        if (edge_attr_col): 
             pdf[edge_attr_col] = pdf[edge_attr_col].astype(str)
 
         nxGraph = nx.Graph()
