@@ -58,15 +58,17 @@ A vertex/node measurement quantifying the number of connected edges
 `Connected Component` <br>
 A strongly connected subgraph, meaning that every vertex can reach the other vertices in the subgraph.
 
+`Modularity` <br>
+A function investigating quality that explores whether there is a true division of a cluster into subclusters or not. A positive value would suggest the existence of a sub-cluster structure, with a greater value providing more evidence. Oppositely, no change in this value suggests no underlying sub-cluster structure, or that by dividing the cluster, things are "getting worse respectively" ([Chatzoglou, Manassis, et al (2016)][chatzogloumanassisetal2016]).
+
+[chatzogloumanassisetal2016]:[https://gss.civilservice.gov.uk/wp-content/uploads/2016/07/1.4.2-Christos-Chatzoglou-Use-of-graph-databases-to-improve-the-management-and-quality-of-linked-data.docx]
+
 `Shortest Path` <br>
 unweighted: The lowest number of edges required to traverse between two specific vertices/nodes unweighted
     
 weighted: The edges with the least traversal cost between two specific vertices/nodes.
 
-`Modularity` <br>
-A function investigating quality that explores whether there is a true division of a cluster into subclusters or not. A positive value would suggest the existence of a sub-cluster structure, with a greater value providing more evidence. Oppositely, no change in this value suggests no underlying sub-cluster structure, or that by dividing the cluster, things are "getting worse respectively" ([Chatzoglou, Manassis, et al (2016)][chatzogloumanassisetal2016]).
-
-[chatzogloumanassisetal2016]:[https://gss.civilservice.gov.uk/wp-content/uploads/2016/07/1.4.2-Christos-Chatzoglou-Use-of-graph-databases-to-improve-the-management-and-quality-of-linked-data.docx]
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/shortest_path_calc.png)
 
 ## Installation Guide <a name= 'installation_guide'/>
 
@@ -174,12 +176,26 @@ Below are the metrics available through splink-graph, what they calculate and wh
 They are arranged into 3 types:
 
 - [Cluster Metrics](#clustermetrics)
+    * [cluster_basic_stats](#clusterbasicstats)
+    * [cluster_main_stats](#clustermainstats)
+    * [cluster_graph_hash](#clustergraphhash)
+    * [cluster_connectivity_stats](#clusterconnstats)
+    * [cluster_eb_modularity](#clusterebmodularity)
+    * [cluster_lpg_modularity](#clusterlpgmodularity)
+    * [cluster_average_edge_betweeness](#clusteravgeb)
+    * [number_of_bridges](#numberofbridges)
+    * [cluster_assortativity](#clusterassortativity)
+    * [cluster_efficiency](#clusterefficiency)
 - [Node Metrics](#nodemetrics)
+    * [eigencentrality](#eigencentrality)
+    * [harmoniccentrality](#harmoniccentrality)
 - [Edge Metrics](#edgemetrics)
+    * [edge_betweeness](#edgebetweeness)
+    * [bridge_edges](#bridgeedges)
 
 ## Cluster Metrics <a name= 'clustermetrics' />
 
-### **cluster_basic_stats**
+### **cluster_basic_stats** <a name= 'clusterbasicstats' />
 This provides node count, edge count, number of nodes per cluster, and density. 
 
 ```python
@@ -198,13 +214,19 @@ Number of nodes contained within each cluster.
 `Density` <br>
 "The density of a graph is a number ranging from 0 to 1 and reflecting how connected a graph is in regards to its maximum potential connectivity. The density can also be formulated as the ratio between actual connections, i.e. the number of existing edges in the graph, and the number of maximum potential connections between vertices" ([Croset et al (2015)][crosetetal2015]).
 
-[crosetetal2015]: [https://academic.oup.com/bioinformatics/article/32/6/918/1743746]
-
         Actual Edges / Maximum Possible Edges
 
-<span style="color:green">**The higher the density, the more connected the cluster is.**</span>
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/dense_graph.png) 
 
-### **cluster_main_stats**
+<span style="color:green">**High density reflects a well connected graph (see above), meaning your clusters are not problematic.**</span>
+
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/bridge_graph.png)
+
+<span style="color:red">**Low density means your cluster should be clerically reviewed as this could be a cause for concern.**</span>
+
+[crosetetal2015]: [https://academic.oup.com/bioinformatics/article/32/6/918/1743746]
+
+### **cluster_main_stats** <a name= 'clustermainstats' />
 Calculates diameter, transivity, triangle clustering coefficient and square clustering coefficient.
 
 ```python
@@ -212,24 +234,33 @@ cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id
 ```
 
 `Diameter` <br>
-The diameter of a graph is a measure of the longest distance between two nodes ([Randall et al (2014)][randalletal2014]).
+The diameter of a graph is a measure of the longest distance between two nodes ([Randall et al (2014)][randalletal2014]). I.e. the largest number of edges that must be transversed to travel from one vertex/node to another, OR the maximum length from all shortest path calculations. 
 
-`Transivity` (or `Global Clustering Coefficient` in the related literature) <br>
+![](https://mathworld.wolfram.com/images/eps-svg/GraphDiameter_750.svg) ([Wolfram Mathworld][mathworld])
+
+[randalletal2014]: [https://espace.curtin.edu.au/bitstream/handle/20.500.11937/3205/199679_199679.pdf?sequence=2&isAllowed=y]
+[mathworld]:[https://mathworld.wolfram.com/GraphDiameter.html]
+
+`Transitivity` (or `Global Clustering Coefficient` in the related literature) <br>
 The global clustering coefficient is based on triplets of nodes in a graph. A triplet consists of three connected nodes. A triangle therefore includes three closed triplets, one centered on each of the nodes (n.b. this means the three triplets in a triangle come from overlapping selections of nodes). The global clustering coefficient is the number of closed triplets (or 3 x triangles) over the total number of triplets (both open and closed).
 
-<span style="color:red">**A high diameter but low transivity means something might be wrong and your need to investigate. 
-Especially if there are bridges that connect the clusters.**</span>
+<span style="color:red">**Low transitivity is a cause for concern, especially where diameter is high but transitivity is low, and even more so if bridges are present. These clusters should be clerically reviewed.**</span>
 
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/global_clust_coeff.png)
 
 `Traingle Clustering Coefficient` (or `Local Clustering Coefficient` in the related literature) <br>
-The local clustering coefficient for a node is then given by the proportion of links between the vertices within its neighborhood divided by the number of links that could possibly exist between them. The local clustering coefficient for a graph is the average LCC for all the nodes in that graph.
-   
+The local clustering coefficient for a node is then given by the proportion of links between the vertices within its neighborhood divided by the number of links that could possibly exist between them. I.e. the average density of the node's neighbours. The local clustering coefficient for a graph is the average LCC for all the nodes in that graph.
+
+<span style="color:red">**Low LCC/TCC is cause for concern as it could suggest there are edges that link nodes that maybe shouldnt be linked.**</span>
+
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/local_clust_coeff.png)
+
 `Square Clustering Coefficient`<br>
 Quantifies the abundance of connected squares in a graph (useful for bipartite networks where nodes cannot be connected in triangles).
 
-[randalletal2014]: [https://espace.curtin.edu.au/bitstream/handle/20.500.11937/3205/199679_199679.pdf?sequence=2&isAllowed=y]
+<span style="color:red">**Like TCC/LCC, Low SCC is also cause for concern as it could suggest there are edges that link nodes that maybe shouldnt be linked.**</span>
 
-### **cluster_graph_hash**
+### **cluster_graph_hash** <a name= 'clustergraphhash' />
 Calculates Weisfeiler-Lehman graphhash of a cluster (in order to quickly test for graph isomorphisms).
 
 ```python
@@ -241,14 +272,18 @@ A Weisfeiler Lehman graph hash offers a way to quickly test for graph isomorphis
 and there are strong guarantees that non-isomorphic graphs will get different hashes. 
 Two graphs are considered isomorphic if there is a mapping between the nodes of the graphs that preserves node adjacencies. 
 That is, a pair of nodes may be connected by an edge in the first graph if and only if the corresponding pair of nodes in 
-the second graph is also connected by an edge in the same way. 
+the second graph is also connected by an edge in the same way.
 
-![](https://github.com/moj-analytical-services/splink_graph/raw/master/notebooks/graph-isomorphism.png)
+This metric is particularly helpful as when clusters present the same graph hash, you can have confidence they are the same, unlike some other metrics, where although they may look similar, they are not mathematically identical.
+
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/isomorphism_graph.png)
 
 Graph 1 and Graph 2 above are isomorphic. 
 The correspondance between nodes is illustrated by the node colors and numbers.
 
-### **cluster_connectivity_stats**
+**The version of graph hash currently held on splink_graph does take edge composition into account.**
+
+### **cluster_connectivity_stats** <a name= 'clusterconnstats' />
 Calculates Node Connectivity and Edge Connectivity of the cluster.
 ```python
 cluster_connectivity_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id")
@@ -262,10 +297,12 @@ the remaining nodes into two or more isolated subgraphs.
 Edge connectivity of a graph gives for the minimum number of edges that need to be removed to separate 
 the remaining nodes into two or more isolated subgraphs.
 
-<span style="color:green">**The larger these values are, the more connected the cluster is.**</span>
+<span style="color:green">**The larger these values are (both node and edge connectivity), the more connected the cluster is.**</span>
 
-### **cluster_eb_modularity**
-Caclulates the comp (?) eb modularity.
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/node_connectivity.png)
+
+### **cluster_eb_modularity** <a name= 'clusterebmodularity' />
+Caclulates the cluster edge betweeness modularity.
 
 ```python
 cluster_eb_modularity(sparkdf, src="src", dst="dst", distance_colname = "distance", cluster_id_colname="cluster_id")
@@ -274,7 +311,7 @@ cluster_eb_modularity(sparkdf, src="src", dst="dst", distance_colname = "distanc
 `Comp eb modularity` <br>
 Modularity for cluster_id if it partitioned into two parts at the point where the highest edge betweeness exists.
 
-### **cluster_lpg_modularity**
+### **cluster_lpg_modularity** <a name= 'clusterlpgmodularity' />
 Calculates the cluster lpg modularity.
 
 ```python
@@ -284,7 +321,7 @@ cluster_lpg_modularity(sparkdf, src="src", dst="dst", distance_colname = "distan
 `Cluster lpg modularity` <br>
 Modularity for cluster_id if it partitioned into 2 parts based on label propagation.
 
-### **cluster_avg_edge_betweeness**
+### **cluster_avg_edge_betweeness** <a name= 'clusteravgeb' />
 Provides the average edge betweeness for each cluster id. 
 
 ``` python
@@ -294,11 +331,12 @@ cluster_avg_edge_betweeness(sparkdf, src="src", dst="dst", distance_colname = "d
 `Average Edge Betweeness` <br>
 “In order to get a measure for the robustness of a network we can take the average of the vertex/edge betweenness. The smaller this average, the more robust the network." - ([Ellens and Kooij (2013)][ellenskooij2013])
 
-[ellenskooij2013]:[https://arxiv.org/pdf/1311.5064]
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/bridge_graph.png)
 
 _See below for edge betweenness definition._
+[ellenskooij2013]:[https://arxiv.org/pdf/1311.5064]
 
-### **number_of_bridges**
+### **number_of_bridges** <a name= 'numberofbridges' />
 Provides the number of bridges in the cluster. 
 
 ```python
@@ -308,9 +346,11 @@ number_of_bridges(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"
 `Number of Bridges`<br>
 The number of edges that join two clusters together (a bridge). 
 
-<span style="color:red">**A high bridge count could suggest there is something wrong!**</span>
+<span style="color:red">**A high bridge count could suggest that there are edges linking multiple clusters together when they shouldn't. This cluster should therefore be clerically reviewed.**</span>
 
-### **cluster_assortativity**
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/edge_between_bridges.png)
+
+### **cluster_assortativity** <a name= 'clusterassortativity' />
 Calculates the assortativity of a cluster. 
 
 ```python
@@ -319,11 +359,14 @@ cluster_assortativity(sparkdf, src="src", dst="dst", cluster_id_colname="cluster
 `Cluster Assortativity`<br>
 “Assortativity is a graph metric. It represents to what extent nodes in a network associate with other nodes in the network, being of similar sort or being of opposing sort... A network is said to be assortative when high degree nodes are, on average, connected to other nodes with high degree and low degree nodes are, on average, connected to other nodes with low degree. A network is said to be disassortative when, on average, high degree nodes are connected to nodes with low(er) degree and, on average, low degree nodes are connected to nodes with high(er) degree"  - ([Noldus and Mieghem (2015)][noldusmieghem2015]).
 
+<span style="color:red">**This metric ranges from +1 to -1. The more negative this metric is, the more suspicious this cluster looks, and clusters -0.2 or lower should be clerically reviewed.**</span>
+
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/assortativity.png)
+
 [noldusmieghem2015]:[https://nas.ewi.tudelft.nl/people/Piet/papers/JCN2015AssortativitySurveyRogier.pdf]
 
-### **cluster_efficiency**
-To be continued... Need to find code example.
-
+### **cluster_efficiency** <a name= 'clusterefficiency' />
+_code to be added_
 
 `Cluster Effiiency`<br>
 “For the efficiency it holds that the greater the value, the greater the robustness, because the reciprocals of the path lengths are used. The advantage of this measure is that it can be used for unconnected networks, such as social networks or networks subject to failures. Otherwise, it has the same disadvantage as the average path length; alternative paths are not considered”  - ([Ellens and Kooij (2013)][ellenskooij2013])
@@ -332,7 +375,7 @@ To be continued... Need to find code example.
 
 ## Node Metrics <a name= 'nodemetrics' />
 
-### **eigencentrality**
+### **eigencentrality** <a name= 'eigencentrality' />
 Provides the eingenvector centrality of a cluster. 
 
 ```python
@@ -345,7 +388,7 @@ Relationships to high-scoring nodes contribute more to the score of a node than 
 
 <span style="color:green">**A high score means that a node is connected to other nodes that have high scores.**</span>
 
-### **harmoniccentrality**
+### **harmoniccentrality** <a name= 'harmoniccentrality' />
 Provides the harmonic centrality of a cluster. 
 
 ```python
@@ -360,7 +403,7 @@ This enables it deal with infinite values.
 
 ## Edge Metrics <a name= 'edgemetrics' />
 
-### **edgebetweeness**
+### **edgebetweeness** <a name= 'edgebetweeness' />
 Provides the edge betweeness. 
 
 ```python
@@ -370,9 +413,13 @@ edgebetweeness(sparkdf, src="src", dst="dst", distance_colname = "distance", clu
 `Edge Betweeness`<br>
 “The edge betweeness graph metric counts the number of shortest paths between any two nodes from the cluster that use this edge. If there is more than one shortest path between a pair of nodes, each path is assigned equal weight such that the total weight of all of the paths is equal to unity."  - ([Chatzoglou, Manassis, et al (2016)][chatzogloumanassisetal2016]).
 
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/bridge_graph.png)
+
+<span style="color:red">**A high edge betweeness is cause for concern and so clusters may need to be clerically reviewed.**</span>
+
 [chatzogloumanassisetal2016]:[https://gss.civilservice.gov.uk/wp-content/uploads/2016/07/1.4.2-Christos-Chatzoglou-Use-of-graph-databases-to-improve-the-management-and-quality-of-linked-data.docx]
 
-### **bridge_edges**
+### **bridge_edges** <a name= 'bridgeedges' />
 Returns any edges that are bridges.
 
 ```python
@@ -380,7 +427,10 @@ bridge_edges(sparkdf, src="src", dst="dst", distance_colname = "distance", clust
 ```
 
 `Bridge Edges`<br>
-Bridge Edges are edges which join together two distinct clusters.
+Bridge Edges are edges which join together two distinct clusters. I.e. any edges that if removed increase the total number of clusters. 
+When bridges are present, this increases the edge betweeness of the cluster. 
+
+![](https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/edge_between_bridges.png)
 
 ## Resources <a name= 'resources'/>
 
