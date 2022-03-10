@@ -265,7 +265,8 @@ the remaining nodes into two or more isolated subgraphs.
 <span style="color:green">**The larger these values are, the more connected the cluster is.**</span>
 
 ### **cluster_eb_modularity**
-Caclulates the comp (?) eb modularity.
+Caclulates the edgebetweeness modularity ie the modularity of a subgraph if partitioned into two parts 
+at the point where the highest edge betweeness exists.
 
 ```python
 cluster_eb_modularity(sparkdf, src="src", dst="dst", distance_colname = "distance", cluster_id_colname="cluster_id")
