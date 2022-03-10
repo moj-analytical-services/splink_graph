@@ -19,13 +19,13 @@ This guide aims to act as both a user guide and terminology guide, to aid those 
 ## Graph Theory  <a name= 'graph_theory'/>
 
 A language for networks/graphs. In summary, graph theory gives us a language for networks/graphs. It allows us to define graphs exactly and to quantify graph 
-properties at all different levels. This quantification is likely to improve further since new graph measures are described regularly. 
+properties at all different levels. 
 
-For more informaiton on Graph Theory, [Network Science][networksciencebook] by Albert-László Barabási is a great resource. 
+For more information on Graph Theory, [Network Science][networksciencebook] by Albert-László Barabási is a great resource. 
 
 [networksciencebook]: http://networksciencebook.com/
 
-## Terminiology <a name= 'terminology'/>
+## Terminology <a name= 'terminology'/>
 
 Like any discipline, graphs come with their own set of nomenclature. 
 The following descriptions are intentionally simplified—more mathematically rigorous definitions can be found in any graph theory textbook (e.g. [Network Science][networksciencebook]).
@@ -64,7 +64,7 @@ unweighted: The lowest number of edges required to traverse between two specific
 weighted: The edges with the least traversal cost between two specific vertices/nodes.
 
 `Modularity` <br>
-A function investigating quality that explores whether there is a true division of a cluster into subclusters or not. A positive value would suggest the existence of a sub-cluster structure, with a greater value providing more evidence. Oppositely, no change in this value suggests no underlying sub-cluster structure, or that by dividing the cluster, things are "getting worse respectively" ([Chatzoglou, Manassis, et al (2016)][chatzogloumanassisetal2016]).
+A metric that explores whether there is a true division of a cluster into subclusters or not. A positive value would suggest the existence of a sub-cluster structure, with a greater value providing more evidence. Oppositely, no change in this value suggests no underlying sub-cluster structure, or that by dividing the cluster, things are "getting worse respectively" ([Chatzoglou, Manassis, et al (2016)][chatzogloumanassisetal2016]).
 
 [chatzogloumanassisetal2016]:[https://gss.civilservice.gov.uk/wp-content/uploads/2016/07/1.4.2-Christos-Chatzoglou-Use-of-graph-databases-to-improve-the-management-and-quality-of-linked-data.docx]
 
