@@ -123,6 +123,55 @@ def cluster_graph_hash(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
     return out
 
 
+def cluster_graph_hash_edge_attr(
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id", edge_attr_col=None
+):
+    """calculate weisfeiler-lehman graph hash of a cluster taking into account the edge weights too.
+      weights are converted to strings for the hashing.
+
+
+    Args:
+        sparkdf: imput edgelist Spark DataFrame
+        src: src column name
+        dst: dst column name
+        cluster_id_colname: Graphframes-created connected components created cluster_id
+        edge_attr_col: edge attributes (like edge weights) column
+    """
+    psrc = src
+    pdst = dst
+
+    @pandas_udf(
+        StructType(
+            [
+                StructField("cluster_id", LongType()),
+                StructField("graphhash_ea", StringType()),
+            ]
+        ),
+        functionType=PandasUDFType.GROUPED_MAP,
+    )
+    def gh_edge_attr(pdf: pd.DataFrame) -> pd.DataFrame:
+
+        if edge_attr_col:
+            pdf[edge_attr_col] = pdf[edge_attr_col].astype(str)
+
+        nxGraph = nx.Graph()
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, [edge_attr_col])
+
+        ghe = nx.weisfeiler_lehman_graph_hash(nxGraph, edge_attr=edge_attr_col)
+        co = pdf[cluster_id_colname].iloc[0]  # access component id
+
+        return pd.DataFrame(
+            [[co] + [ghe]],
+            columns=[
+                "cluster_id",
+                "graphhash_ea",
+            ],
+        )
+
+    out = sparkdf.groupby(cluster_id_colname).apply(gh_edge_attr)
+    return out
+
+
 def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
     """calculate diameter / transitivity(GCC) / triangle clustering coefficient LCC / square clustering coeff
 
@@ -224,6 +273,8 @@ def cluster_connectivity_stats(
 
             node_conn: Node Connectivity measures the minimal number of vertices that can be removed to disconnect the graph.
             edge_conn: Edge connectivity measures the minimal number of edges that can be removed to disconnect the graph.
+            degeneracy: a way to measure sparsity
+            num_articulation_pts: how many articulation points? an articulation point is a node that if removed disconnects a graph
 
 
         The larger these metrics are --> the more connected the subggraph is.

@@ -89,18 +89,18 @@ def _probability_to_normalised_bayes_factor(
 
 
 def _assert_columns(sparkdf, columns):
-    """ 
+    """
     Raise an exception if the dataframe
     does not contain the desired columns
-    
+
     Args:
-    
-        sparkdf (pyspark.sql.DataFrame): 
+
+        sparkdf (pyspark.sql.DataFrame):
         columns (list of strings):  Set of columns that must be present in df
     Raises:
         ValueError: if the dataframe does not contain the desired columns
-    
-    
+
+
     """
     have = set(df.columns)
     need = set(columns)
@@ -137,9 +137,9 @@ def _nx_compute_all_pairs_shortest_path(nxgraph, weight=None, normalize=False):
     """
     Takes as input :
         a networkx graph nxGraph
-            
+
     Returns: a dictionary of the computed shortest path lengths between all nodes in a graph. Accepts weighted or unweighted graphs
-    
+
     """
 
     lengths = nx.all_pairs_dijkstra_path_length(nxgraph, weight=weight)
@@ -151,11 +151,11 @@ def _nx_longest_shortest_path(lengths):
     """
     Takes as input :
         the output of _nx_compute_all_pairs_shortest_path function which is a dictionary of shortest paths from the graph that function took as input
-            
-    Returns: the longest shortest path 
+
+    Returns: the longest shortest path
     This is also known as the *diameter* of a graph
 
-    
+
     """
 
     max_length = max([max(lengths[i].values()) for i in lengths])
@@ -170,9 +170,9 @@ def _laplacian_matrix(nxgraph):
 
     Returns:
         L: Scipy sparse format Laplacian matrix
-            
-            
-            
+
+
+
     The Laplacian matrix L = D - A  is calculated where
     A: Adjacency Matrix
     D: Diagonal Matrix
@@ -200,7 +200,7 @@ def _laplacian_spectrum(nxgraph):
 
     Returns:
        la_spectrum: laplacian spectrum of the graph
-    
+
     """
 
     la_spectrum = nx.laplacian_spectrum(nxgraph)
@@ -211,14 +211,14 @@ def _laplacian_spectrum(nxgraph):
 
 def _from_unweighted_graphframe_to_nxGraph(g):
     """
-    
+
     Args:
-    
-        g (Graphframe): an unweighted Graphframe graph g    
-           
-           
-    Returns: 
-       
+
+        g (Graphframe): an unweighted Graphframe graph g
+
+
+    Returns:
+
         nxGraph:    an unweighted networkx graph"""
 
     nxGraph = nx.Graph()
@@ -229,13 +229,13 @@ def _from_unweighted_graphframe_to_nxGraph(g):
 
 def _from_weighted_graphframe_to_nxGraph(g):
     """
-        Args:
-       
-           g (Graphframe): a weighted Graphframe graph g (note: edge weight column needs to be called as weight on the Graphframe)
-           
-        Returns: 
-       
-           nxGraph:a weighted networkx graph"""
+    Args:
+
+       g (Graphframe): a weighted Graphframe graph g (note: edge weight column needs to be called as weight on the Graphframe)
+
+    Returns:
+
+       nxGraph:a weighted networkx graph"""
 
     nxGraph = nx.Graph()
     nxGraph.add_nodes_from(g.vertices.rdd.map(lambda x: x.id).collect())

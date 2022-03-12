@@ -35,7 +35,10 @@ def test_eigencentrality_star(spark):
     star["cluster_id"] = 1
 
     # Create an Edge DataFrame with "src" and "dst" columns
-    e_df = spark.createDataFrame(star, ["src", "dst", "weight", "cluster_id"],)
+    e_df = spark.createDataFrame(
+        star,
+        ["src", "dst", "weight", "cluster_id"],
+    )
 
     df_result = eigencentrality(e_df).toPandas()
 

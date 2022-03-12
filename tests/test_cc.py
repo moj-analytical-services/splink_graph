@@ -53,7 +53,11 @@ def test_cc_simple(sparkSessionwithgraphframes, graphframes_tmpdir):
 def test_nx_cc_simplest(spark):
     # Create an Edge DataFrame with "src" and "dst" columns
     e2_df = spark.createDataFrame(
-        [("a", "b", 0.999), ("y", "z", 0.999),], ["src", "dst", "weight"],
+        [
+            ("a", "b", 0.999),
+            ("y", "z", 0.999),
+        ],
+        ["src", "dst", "weight"],
     )
     df_result = nx_connected_components(
         spark, e2_df, src="src", dst="dst", weight_colname="weight", cc_threshold=0.1
