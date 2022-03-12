@@ -26,26 +26,26 @@ def _node2vec_embedding(
     walk_length=8,
 ):
     """provide node2vec embedding of each subgraph/cluster
-    
-    
+
+
     Args:
         sparkdf: imput edgelist Spark DataFrame
         src: src column name
         dst: dst column name
         cluster_id_colname: Graphframes connected components created cluster_id
-        dimensions (int): node2vec parameter 
-        walk_length (int): node2vec parameter 
-        num_walks (int):node2vec parameter 
-    
+        dimensions (int): node2vec parameter
+        walk_length (int): node2vec parameter
+        num_walks (int):node2vec parameter
+
     Returns:
         cluster_id: Graphframes connected components created cluster_id
-        n2vembed: node2vec embedded array casted as string 
-        
-        
+        n2vembed: node2vec embedded array casted as string
+
+
     Note: in order for the array to be used it needs to be casted back to a numpy array downstream
     like this: `n2varray= np.array(ast.literal_eval(n2varraystring))`
     This has been implemented like this because of limitations on return types of PANDAS_UDFs)
-        
+
     """
 
     psrc = src
@@ -85,7 +85,11 @@ def _node2vec_embedding(
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
-            [[co] + [str(embeddings)]], columns=["cluster_id", "n2vembed",]
+            [[co] + [str(embeddings)]],
+            columns=[
+                "cluster_id",
+                "n2vembed",
+            ],
         )
 
     out = sparkdf.groupby(cluster_id_colname).apply(n2v)

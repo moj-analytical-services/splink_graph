@@ -24,16 +24,16 @@ def edgebetweeness(
     cluster_id_colname="cluster_id",
 ):
     """return edge betweenness
-    
+
     Args:
         sparkdf: imput edgelist Spark DataFrame
         src: src column name
         dst: dst column name
         distance_colname: distance column name
         cluster_id_colname: Graphframes-created connected components created cluster_id
-    
 
-    
+
+
     """
 
     psrc = src
@@ -90,47 +90,47 @@ def bridge_edges(
 ):
 
     """return edges that are bridges
-    
-    Args:
-        sparkdf: imput edgelist Spark DataFrame
-        src: src column name
-        dst: dst column name
-        distance_colname: distance column name
-        cluster_id_colname: Graphframes-created connected components created cluster_id
-        
-    Returns:    
-            src: 
-            dst:
-            distance:
-            weight:
-            cluster_id: Graphframes-created connected components created cluster_id
+
+        Args:
+            sparkdf: imput edgelist Spark DataFrame
+            src: src column name
+            dst: dst column name
+            distance_colname: distance column name
+            cluster_id_colname: Graphframes-created connected components created cluster_id
+
+        Returns:
+                src:
+                dst:
+                distance:
+                weight:
+                cluster_id: Graphframes-created connected components created cluster_id
 
 
-example input spark dataframe
+    example input spark dataframe
 
-|src|dst|weight|cluster_id|distance|
-+---|---|------|----------|--------|
-|  f|  d|  0.67|         0|0.329   |
-|  f|  g|  0.34|         0|0.659   |
-|  b|  c|  0.56|8589934592| 0.439  |
-|  g|  h|  0.99|         0|0.010   |
-|  a|  b|   0.4|8589934592|0.6     |
-|  h|  i|   0.5|         0|0.5     |
-|  h|  j|   0.8|         0| 0.199  |
-|  d|  e|  0.84|         0| 0.160  |
-|  e|  f|  0.65|         0|0.35    |
-
-    
-example output spark dataframe
+    |src|dst|weight|cluster_id|distance|
+    +---|---|------|----------|--------|
+    |  f|  d|  0.67|         0|0.329   |
+    |  f|  g|  0.34|         0|0.659   |
+    |  b|  c|  0.56|8589934592| 0.439  |
+    |  g|  h|  0.99|         0|0.010   |
+    |  a|  b|   0.4|8589934592|0.6     |
+    |  h|  i|   0.5|         0|0.5     |
+    |  h|  j|   0.8|         0| 0.199  |
+    |  d|  e|  0.84|         0| 0.160  |
+    |  e|  f|  0.65|         0|0.35    |
 
 
-|src|dst|weight|cluster_id|distance|
-+---|---|------|----------|--------|
-|  b|  c|  0.56|8589934592|0.439   |
-|  f|  g|  0.34|         0|0.659   |
-|  g|  h|  0.99|         0|0.010   |
-|  h|  i|   0.5|         0|0.5     |
-|  h|  j|   0.8|         0|0.199   |
+    example output spark dataframe
+
+
+    |src|dst|weight|cluster_id|distance|
+    +---|---|------|----------|--------|
+    |  b|  c|  0.56|8589934592|0.439   |
+    |  f|  g|  0.34|         0|0.659   |
+    |  g|  h|  0.99|         0|0.010   |
+    |  h|  i|   0.5|         0|0.5     |
+    |  h|  j|   0.8|         0|0.199   |
 
 
     """

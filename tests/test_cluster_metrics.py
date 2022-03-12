@@ -558,26 +558,26 @@ def test_cluster_graph_hash_attr(spark):
         {"src": 0, "dst": 2, "weight": "3", "cluster_id": 1},
         {"src": 1, "dst": 2, "weight": "3", "cluster_id": 1},
         {"src": 2, "dst": 3, "weight": "3", "cluster_id": 1},
-       
     ]
-    
+
     e_df = spark.createDataFrame(Row(**x) for x in data_list)
-    
+
     df_result = cluster_graph_hash_edge_attr(
         e_df,
         src="src",
         dst="dst",
         cluster_id_colname="cluster_id",
-        edge_attr_col="weight"
+        edge_attr_col="weight",
     ).toPandas()
 
     # nx.__version__ needs to be under 2.7 for this test to run sucessfully
     # in networkx 2.7 onwards the way of calculating the hash differs
-    # networkx 2.7 however doesnt work with python 3.6, 3.7 but only 3.8 onwrds 
+    # networkx 2.7 however doesnt work with python 3.6, 3.7 but only 3.8 onwrds
     # hence for the time being a nx version less thank 2.7 is used in splink_graph
-    
+
     assert df_result["graphhash_ea"][0] == "c5020c896f58a9d40dff96ef8f943ee1"
-    
+
+
 def test_cluster_assortativity_neg(spark):
     # Create an Edge DataFrame with "src" and "dst" columns
     data_list = [

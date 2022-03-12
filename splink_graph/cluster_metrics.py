@@ -122,7 +122,10 @@ def cluster_graph_hash(sparkdf, src="src", dst="dst", cluster_id_colname="cluste
     out = sparkdf.groupby(cluster_id_colname).apply(gh)
     return out
 
-def cluster_graph_hash_edge_attr(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id",edge_attr_col=None):
+
+def cluster_graph_hash_edge_attr(
+    sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id", edge_attr_col=None
+):
     """calculate weisfeiler-lehman graph hash of a cluster taking into account the edge weights too.
       weights are converted to strings for the hashing.
 
@@ -147,14 +150,14 @@ def cluster_graph_hash_edge_attr(sparkdf, src="src", dst="dst", cluster_id_colna
         functionType=PandasUDFType.GROUPED_MAP,
     )
     def gh_edge_attr(pdf: pd.DataFrame) -> pd.DataFrame:
-        
-        if (edge_attr_col): 
+
+        if edge_attr_col:
             pdf[edge_attr_col] = pdf[edge_attr_col].astype(str)
 
         nxGraph = nx.Graph()
-        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst,[edge_attr_col])
-        
-        ghe = nx.weisfeiler_lehman_graph_hash(nxGraph,edge_attr=edge_attr_col)
+        nxGraph = nx.from_pandas_edgelist(pdf, psrc, pdst, [edge_attr_col])
+
+        ghe = nx.weisfeiler_lehman_graph_hash(nxGraph, edge_attr=edge_attr_col)
         co = pdf[cluster_id_colname].iloc[0]  # access component id
 
         return pd.DataFrame(
@@ -167,7 +170,6 @@ def cluster_graph_hash_edge_attr(sparkdf, src="src", dst="dst", cluster_id_colna
 
     out = sparkdf.groupby(cluster_id_colname).apply(gh_edge_attr)
     return out
-
 
 
 def cluster_main_stats(sparkdf, src="src", dst="dst", cluster_id_colname="cluster_id"):
