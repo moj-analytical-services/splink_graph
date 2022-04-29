@@ -1,0 +1,1069 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
+    
+    
+      
+        <title>splink_graph guide - splink_graph</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.a57b2b03.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.3f5d1f46.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="css/ansi-colours.css">
+    
+      <link rel="stylesheet" href="css/jupyter-cells.css">
+    
+      <link rel="stylesheet" href="css/pandas-dataframe.css">
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <script>function __prefix(e){return new URL(".",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+      <script>var palette=__get("__palette");if(null!==palette&&"object"==typeof palette.color)for(var key in palette.color)document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#contents" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="splink_graph" class="md-header__button md-logo" aria-label="splink_graph" data-md-component="logo">
+      
+  <img src="img/favicon.ico" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            splink_graph
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              splink_graph guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="purple" data-md-color-accent="red"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/moj-analytical-services/splink_graph/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="splink_graph" class="md-nav__button md-logo" aria-label="splink_graph" data-md-component="logo">
+      
+  <img src="img/favicon.ico" alt="logo">
+
+    </a>
+    splink_graph
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/moj-analytical-services/splink_graph/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          splink_graph guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="splink_graph_guide.html" class="md-nav__link md-nav__link--active">
+        splink_graph guide
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contents" class="md-nav__link">
+    Contents:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph-theory" class="md-nav__link">
+    Graph Theory  
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terminology" class="md-nav__link">
+    Terminology 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-guide" class="md-nav__link">
+    Installation Guide 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set-up-guide" class="md-nav__link">
+    Set-up Guide 
+  </a>
+  
+    <nav class="md-nav" aria-label="Set-up Guide ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connected-components" class="md-nav__link">
+    Connected Components 
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    Metrics 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cluster-metrics" class="md-nav__link">
+    Cluster Metrics 
+  </a>
+  
+    <nav class="md-nav" aria-label="Cluster Metrics ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cluster_basic_stats" class="md-nav__link">
+    cluster_basic_stats 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_main_stats" class="md-nav__link">
+    cluster_main_stats 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_graph_hash" class="md-nav__link">
+    cluster_graph_hash 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_connectivity_stats" class="md-nav__link">
+    cluster_connectivity_stats 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_eb_modularity" class="md-nav__link">
+    cluster_eb_modularity 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_lpg_modularity" class="md-nav__link">
+    cluster_lpg_modularity 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_avg_edge_betweeness" class="md-nav__link">
+    cluster_avg_edge_betweeness 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#number_of_bridges" class="md-nav__link">
+    number_of_bridges 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_assortativity" class="md-nav__link">
+    cluster_assortativity 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_efficiency" class="md-nav__link">
+    cluster_efficiency 
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-metrics" class="md-nav__link">
+    Node Metrics 
+  </a>
+  
+    <nav class="md-nav" aria-label="Node Metrics ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eigencentrality" class="md-nav__link">
+    eigencentrality 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#harmoniccentrality" class="md-nav__link">
+    harmoniccentrality 
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edge-metrics" class="md-nav__link">
+    Edge Metrics 
+  </a>
+  
+    <nav class="md-nav" aria-label="Edge Metrics ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#edgebetweeness" class="md-nav__link">
+    edgebetweeness 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bridge_edges" class="md-nav__link">
+    bridge_edges 
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    Resources 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    References 
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contents" class="md-nav__link">
+    Contents:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph-theory" class="md-nav__link">
+    Graph Theory  
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terminology" class="md-nav__link">
+    Terminology 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-guide" class="md-nav__link">
+    Installation Guide 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set-up-guide" class="md-nav__link">
+    Set-up Guide 
+  </a>
+  
+    <nav class="md-nav" aria-label="Set-up Guide ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connected-components" class="md-nav__link">
+    Connected Components 
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    Metrics 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cluster-metrics" class="md-nav__link">
+    Cluster Metrics 
+  </a>
+  
+    <nav class="md-nav" aria-label="Cluster Metrics ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cluster_basic_stats" class="md-nav__link">
+    cluster_basic_stats 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_main_stats" class="md-nav__link">
+    cluster_main_stats 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_graph_hash" class="md-nav__link">
+    cluster_graph_hash 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_connectivity_stats" class="md-nav__link">
+    cluster_connectivity_stats 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_eb_modularity" class="md-nav__link">
+    cluster_eb_modularity 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_lpg_modularity" class="md-nav__link">
+    cluster_lpg_modularity 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_avg_edge_betweeness" class="md-nav__link">
+    cluster_avg_edge_betweeness 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#number_of_bridges" class="md-nav__link">
+    number_of_bridges 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_assortativity" class="md-nav__link">
+    cluster_assortativity 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cluster_efficiency" class="md-nav__link">
+    cluster_efficiency 
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-metrics" class="md-nav__link">
+    Node Metrics 
+  </a>
+  
+    <nav class="md-nav" aria-label="Node Metrics ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eigencentrality" class="md-nav__link">
+    eigencentrality 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#harmoniccentrality" class="md-nav__link">
+    harmoniccentrality 
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edge-metrics" class="md-nav__link">
+    Edge Metrics 
+  </a>
+  
+    <nav class="md-nav" aria-label="Edge Metrics ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#edgebetweeness" class="md-nav__link">
+    edgebetweeness 
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bridge_edges" class="md-nav__link">
+    bridge_edges 
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    Resources 
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    References 
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/moj-analytical-services/splink_graph/edit/master/docs/splink_graph_guide.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  <h1>splink_graph guide</h1>
+                
+                <p># Splink Graph Guide</p>
+<p>This guide aims to act as both a user guide and terminology guide, to aid those wanting to use Splink-Graph to understand the theory behind it as well as practical knowledge on how to use it to interpret cluster metrics. </p>
+<h2 id="contents">Contents:<a class="headerlink" href="#contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#graph_theory">Graph Theory</a></li>
+<li><a href="#terminology">Terminology</a></li>
+<li><a href="#installation_guide">Installation guide</a></li>
+<li><a href="#setupguide">Set-up Guide</a><ul>
+<li><a href="#connectedcomponents">Connected Components</a></li>
+</ul>
+</li>
+<li><a href="#metrics">Metrics</a><ul>
+<li><a href="#clustermetrics">Cluster Metrics</a></li>
+<li><a href="#nodemetrics">Node Metrics</a></li>
+<li><a href="#edgemetrics">Edge Metrics</a></li>
+</ul>
+</li>
+<li><a href="#resources">Resources</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+<h2 id="graph-theory">Graph Theory  <a name= 'graph_theory'/><a class="headerlink" href="#graph-theory" title="Permanent link">&para;</a></h2>
+<p>A language for networks/graphs. In summary, graph theory gives us a language for networks/graphs. It allows us to define graphs exactly and to quantify graph 
+properties at all different levels. </p>
+<p>For more information on Graph Theory, <a href="http://networksciencebook.com/">Network Science</a> by Albert-László Barabási is a great resource. </p>
+<h2 id="terminology">Terminology <a name= 'terminology'/><a class="headerlink" href="#terminology" title="Permanent link">&para;</a></h2>
+<p>Like any discipline, graphs come with their own set of nomenclature. 
+The following descriptions are intentionally simplified—more mathematically rigorous definitions can be found in any graph theory textbook (e.g. <a href="http://networksciencebook.com/">Network Science</a>).</p>
+<p><code>Graph</code> <br>
+A data structure G = (V, E) where V and E are a set of vertices/nodes and edges.</p>
+<p><code>Vertex/Node</code> <br>
+Represents a single entity such as a person or an object,</p>
+<p><code>Edge</code> <br>
+Represents a relationship between two vertices (e.g., are these two vertices/nodes friends on a social network?).</p>
+<p><code>Directed Graph vs. Undirected Graph</code> <br>
+Denotes whether the relationship represented by edges is symmetric or not </p>
+<p><code>Weighted vs Unweighted Graph</code> <br>
+In weighted graphs edges have a weight that could represent cost of traversing or a similarity score or a distance score</p>
+<p>In unweighted graphs edges have no weight and simply show connections . example: course prerequisites</p>
+<p><code>Subgraph</code> <br>
+A set of vertices and edges that are a subset of the full graph's vertices and edges.</p>
+<p><code>Degree</code> <br>
+A vertex/node measurement quantifying the number of connected edges </p>
+<p><code>Connected Component</code> <br>
+A strongly connected subgraph, meaning that every vertex can reach the other vertices in the subgraph.</p>
+<p><code>Modularity</code> <br>
+A function investigating quality that explores whether there is a true division of a cluster into subclusters or not. A positive value would suggest the existence of a sub-cluster structure, with a greater value providing more evidence. Oppositely, no change in this value suggests no underlying sub-cluster structure, or that by dividing the cluster, things are "getting worse respectively" (<a href="[https://gss.civilservice.gov.uk/wp-content/uploads/2016/07/1.4.2-Christos-Chatzoglou-Use-of-graph-databases-to-improve-the-management-and-quality-of-linked-data.docx]">Chatzoglou, Manassis, et al (2016)</a>).</p>
+<p><code>Shortest Path</code> <br>
+unweighted: The lowest number of edges required to traverse between two specific vertices/nodes unweighted</p>
+<p>weighted: The edges with the least traversal cost between two specific vertices/nodes.</p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/shortest_path_calc.png" /></p>
+<h2 id="installation-guide">Installation Guide <a name= 'installation_guide'/><a class="headerlink" href="#installation-guide" title="Permanent link">&para;</a></h2>
+<p>Make sure you are running this on a spark system/cluster system!</p>
+<p>Firstly, make sure you have these packages installed:
+* <strong>PyArrow</strong> ~ Version 0.15.0 or above
+* <strong>pandas</strong> ~ Version 1.1.5 or above
+* <strong>scipy</strong> ~ Version 1.5.4 or above
+* <strong>numpy</strong> ~ Version 1.19.5 or above</p>
+<p>To check use, <code>pip show _packagename_</code></p>
+<p>Then, the easiest way to install splink_graph is:
+<code>pip install --upgrade splink_graph</code></p>
+<p>For information regarding how to install splink_graph and its dependencies, please see <a href="https://github.com/moj-analytical-services/splink_graph/blob/master/INSTALL.md">INSTALL.md</a></p>
+<p>For a ONS-DAP specific guide, please contact @EKenning</p>
+<h2 id="set-up-guide">Set-up Guide <a name= 'setupguide'/><a class="headerlink" href="#set-up-guide" title="Permanent link">&para;</a></h2>
+<p>We recommend utilising Jupyter Notebooks when working with splink_graph, as this is easy to use and produces good visualisations.</p>
+<p>Once installed, you will need to install all the packages mentioned previously into your session.
+E.g.,</p>
+<pre><code class="language-python">import splink_graph
+</code></pre>
+<p>Then you will want to locate the utils folder</p>
+<pre><code class="language-python">from splink_graph.utils import _create_spark_jars_string
+_create spark_jars_string()
+</code></pre>
+<p>And then use the output above to create a jar_string, e.g.:</p>
+<pre><code class="language-python">jar_string = '/abc/def/ghi/
+</code></pre>
+<p>You then must define your spark session.</p>
+<p>Then you are able to read in the dataframe you wish to use, or alternatively, explore the test dataframe included in the package:</p>
+<pre><code class="language-python">test_df = spark.read.parquet('df_e.snappy.parquet')
+</code></pre>
+<h3 id="connected-components">Connected Components <a name= 'connectedcomponents' /><a class="headerlink" href="#connected-components" title="Permanent link">&para;</a></h3>
+<p>Once you have set up the package and read in the dataframe you wish to use, you must run the connected components function. </p>
+<p>This function will provide the edges with scores as well as a cluster id, which are vital for producing the cluster metrics. </p>
+<p>Which connected components function you choose to use, is based on the size of your dataset. </p>
+<p>For a dataset with &lt;2 million records, <strong>nx_connected_components</strong> will need to be used. <br>
+For dataset with &gt;2 milion records, <strong>graphframes_connected_components</strong> will need to be used.</p>
+<p>For the test dataframe, nx_connected_components should be used. </p>
+<pre><code class="language-python">from graphframes import GraphFrame
+import networkx as nx
+from splink_graph.cc import nx_connected_components
+from splink_graph.cc import graphframes_connected_components
+</code></pre>
+<p>To learn more about connected_components, use the help() function. </p>
+<p><code>help(graphframes_connected_components)</code> <br></p>
+<p><code>help(nx_connected_components)</code></p>
+<p>You may need to rename your variables before you run connected components, particularly if using graphframes.</p>
+<pre><code class="language-python">dataframe = dataframe.withColumnRenamed('linkage_id_l', 'src')\
+                     .withColumnRenamed('linkage_id_r', 'dst')\
+                     .withColumnRenamed('match_probability', 'tf_adjusted_match_prob')
+</code></pre>
+<p><strong>You can then run your connected components function!</strong> <br></p>
+<p><em>The cc_threshold decides the threshold for a valid linkage weight. Please adjust in-line with your data.</em></p>
+<pre><code class="language-python">dataframe = graphframes_connected_components(dataframe, src='src', dst='dst', weight_colname='tf_adjusted_match_prob',\
+                                             cc_threshold = 0.9)
+dataframe.show()
+</code></pre>
+<h2 id="metrics">Metrics <a name= 'metrics'/><a class="headerlink" href="#metrics" title="Permanent link">&para;</a></h2>
+<p>Below are the metrics available through splink-graph, what they calculate and what they can tell you about your data.</p>
+<p>They are arranged into 3 types:</p>
+<ul>
+<li><a href="#clustermetrics">Cluster Metrics</a><ul>
+<li><a href="#clusterbasicstats">cluster_basic_stats</a></li>
+<li><a href="#clustermainstats">cluster_main_stats</a></li>
+<li><a href="#clustergraphhash">cluster_graph_hash</a></li>
+<li><a href="#clusterconnstats">cluster_connectivity_stats</a></li>
+<li><a href="#clusterebmodularity">cluster_eb_modularity</a></li>
+<li><a href="#clusterlpgmodularity">cluster_lpg_modularity</a></li>
+<li><a href="#clusteravgeb">cluster_average_edge_betweeness</a></li>
+<li><a href="#numberofbridges">number_of_bridges</a></li>
+<li><a href="#clusterassortativity">cluster_assortativity</a></li>
+<li><a href="#clusterefficiency">cluster_efficiency</a></li>
+</ul>
+</li>
+<li><a href="#nodemetrics">Node Metrics</a><ul>
+<li><a href="#eigencentrality">eigencentrality</a></li>
+<li><a href="#harmoniccentrality">harmoniccentrality</a></li>
+</ul>
+</li>
+<li><a href="#edgemetrics">Edge Metrics</a><ul>
+<li><a href="#edgebetweeness">edge_betweeness</a></li>
+<li><a href="#bridgeedges">bridge_edges</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="cluster-metrics">Cluster Metrics <a name= 'clustermetrics' /><a class="headerlink" href="#cluster-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="cluster_basic_stats"><strong>cluster_basic_stats</strong> <a name= 'clusterbasicstats' /><a class="headerlink" href="#cluster_basic_stats" title="Permanent link">&para;</a></h3>
+<p>This provides node count, edge count, number of nodes per cluster, and density. </p>
+<pre><code class="language-python">cluster_basic_stats(df, src =&quot;src&quot;, dst = &quot;dst&quot;, cluster_id_colname = &quot;cluster_id&quot;, weight_colname = &quot;weight&quot;)
+</code></pre>
+<p><code>Node count</code> <br>
+Number of nodes.</p>
+<p><code>Edge count</code> <br>
+Number of edges/vertices.</p>
+<p><code>Nodes per cluster</code> <br>
+Number of nodes contained within each cluster.</p>
+<p><code>Density</code> <br>
+"The density of a graph is a number ranging from 0 to 1 and reflecting how connected a graph is in regards to its maximum potential connectivity. The density can also be formulated as the ratio between actual connections, i.e. the number of existing edges in the graph, and the number of maximum potential connections between vertices" (<a href="[https://academic.oup.com/bioinformatics/article/32/6/918/1743746]">Croset et al (2015)</a>).</p>
+<pre><code>    Actual Edges / Maximum Possible Edges
+</code></pre>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/sparse_vs_dense.png" /> </p>
+<p><span style="color:green"><strong>High density reflects a well connected graph (see above), meaning that most likely your clusters are not problematic.</strong></span></p>
+<p><span style="color:red"><strong>Low density could indicate that the cluster has the topography where there could be spurious links so it should probably be clerically reviewed .</strong></span></p>
+<h3 id="cluster_main_stats"><strong>cluster_main_stats</strong> <a name= 'clustermainstats' /><a class="headerlink" href="#cluster_main_stats" title="Permanent link">&para;</a></h3>
+<p>Calculates diameter, transivity, triangle clustering coefficient and square clustering coefficient.</p>
+<pre><code class="language-python">cluster_main_stats(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Diameter</code> <br>
+The diameter of a graph is a measure of the longest distance between two nodes (<a href="[https://espace.curtin.edu.au/bitstream/handle/20.500.11937/3205/199679_199679.pdf?sequence=2&amp;isAllowed=y]">Randall et al (2014)</a>). I.e. the largest number of edges that must be transversed to travel from one vertex/node to another, OR the maximum length from all shortest path calculations. </p>
+<p><img alt="" src="https://mathworld.wolfram.com/images/eps-svg/GraphDiameter_750.svg" /> (<a href="[https://mathworld.wolfram.com/GraphDiameter.html]">Wolfram Mathworld</a>)</p>
+<p><code>Transitivity</code> (or <code>Global Clustering Coefficient</code> in the related literature) <br>
+The global clustering coefficient is based on triplets of nodes in a graph. A triplet consists of three connected nodes. A triangle therefore includes three closed triplets, one centered on each of the nodes (n.b. this means the three triplets in a triangle come from overlapping selections of nodes). The global clustering coefficient is the number of closed triplets (or 3 x triangles) over the total number of triplets (both open and closed).</p>
+<p><span style="color:red"><strong>Low transitivity is a cause for concern, especially where diameter is high but transitivity is low, and even more so if bridges are present. These clusters should be clerically reviewed.</strong></span></p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/global_clust_coeff.png" /></p>
+<p><code>Traingle Clustering Coefficient</code> (or <code>Local Clustering Coefficient</code> in the related literature) <br>
+The local clustering coefficient for a node is then given by the proportion of links between the vertices within its neighborhood divided by the number of links that could possibly exist between them. I.e. the average density of the node's neighbours. The local clustering coefficient for a graph is the average LCC for all the nodes in that graph.</p>
+<p><span style="color:red"><strong>Low LCC/TCC is cause for concern as it could suggest there are edges that link nodes that maybe shouldnt be linked.</strong></span></p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/local_clust_coeff.png" /></p>
+<p><code>Square Clustering Coefficient</code><br>
+Quantifies the abundance of connected squares in a graph (useful for bipartite networks where nodes cannot be connected in triangles).</p>
+<p><span style="color:red"><strong>Like TCC/LCC, Low SCC is also cause for concern as it could suggest there are edges that link nodes that maybe shouldnt be linked.</strong></span></p>
+<h3 id="cluster_graph_hash"><strong>cluster_graph_hash</strong> <a name= 'clustergraphhash' /><a class="headerlink" href="#cluster_graph_hash" title="Permanent link">&para;</a></h3>
+<p>Calculates Weisfeiler-Lehman graphhash of a cluster (in order to quickly test for graph isomorphisms).</p>
+<pre><code class="language-python">cluster_graph_hash(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>weisfeiler lehman graph hash</code> <br>
+A Weisfeiler Lehman graph hash offers a way to quickly test for graph isomorphisms. Hashes are identical for isomorphic graphs 
+and there are strong guarantees that non-isomorphic graphs will get different hashes. 
+Two graphs are considered isomorphic if there is a mapping between the nodes of the graphs that preserves node adjacencies. 
+That is, a pair of nodes may be connected by an edge in the first graph if and only if the corresponding pair of nodes in 
+the second graph is also connected by an edge in the same way.</p>
+<p>This metric is particularly helpful as when clusters present the same graph hash, you can have confidence they are the same, unlike some other metrics, where although they may look similar, they are not mathematically identical.</p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/isomorphism_graph.png" /></p>
+<p>Graph 1 and Graph 2 above are isomorphic. 
+The correspondance between nodes is illustrated by the node colors and numbers.</p>
+<p><strong>The version of graph hash currently held on splink_graph does take edge composition into account.</strong></p>
+<h3 id="cluster_connectivity_stats"><strong>cluster_connectivity_stats</strong> <a name= 'clusterconnstats' /><a class="headerlink" href="#cluster_connectivity_stats" title="Permanent link">&para;</a></h3>
+<p>Calculates Node Connectivity and Edge Connectivity of the cluster.</p>
+<pre><code class="language-python">cluster_connectivity_stats(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>node connectivity</code><br>
+Node connectivity of a graph gives for the minimum number of nodes that need to be removed to separate 
+the remaining nodes into two or more isolated subgraphs.</p>
+<p><code>edge connectivity</code><br>
+Edge connectivity of a graph gives for the minimum number of edges that need to be removed to separate 
+the remaining nodes into two or more isolated subgraphs.</p>
+<p><span style="color:green"><strong>The larger these values are (both node and edge connectivity), the more connected the cluster is.</strong></span></p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/node_connectivity.png" /></p>
+<h3 id="cluster_eb_modularity"><strong>cluster_eb_modularity</strong> <a name= 'clusterebmodularity' /><a class="headerlink" href="#cluster_eb_modularity" title="Permanent link">&para;</a></h3>
+<p>Caclulates the cluster edge betweeness modularity.</p>
+<pre><code class="language-python">cluster_eb_modularity(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, distance_colname = &quot;distance&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Comp eb modularity</code> <br>
+Modularity for cluster_id if it partitioned into two parts at the point where the highest edge betweeness exists.</p>
+<h3 id="cluster_lpg_modularity"><strong>cluster_lpg_modularity</strong> <a name= 'clusterlpgmodularity' /><a class="headerlink" href="#cluster_lpg_modularity" title="Permanent link">&para;</a></h3>
+<p>Calculates the cluster lpg modularity.</p>
+<pre><code class="language-python">cluster_lpg_modularity(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, distance_colname = &quot;distance&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Cluster lpg modularity</code> <br>
+Modularity for cluster_id if it partitioned into 2 parts based on label propagation.</p>
+<h3 id="cluster_avg_edge_betweeness"><strong>cluster_avg_edge_betweeness</strong> <a name= 'clusteravgeb' /><a class="headerlink" href="#cluster_avg_edge_betweeness" title="Permanent link">&para;</a></h3>
+<p>Provides the average edge betweeness for each cluster id. </p>
+<pre><code class="language-python">cluster_avg_edge_betweeness(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, distance_colname = &quot;distance&quot;, cluster_id_colname=&quot;cluster_id&quot;) 
+</code></pre>
+<p><code>Average Edge Betweeness</code> <br>
+“In order to get a measure for the robustness of a network we can take the average of the vertex/edge betweenness. The smaller this average, the more robust the network." - (<a href="[https://arxiv.org/pdf/1311.5064]">Ellens and Kooij (2013)</a>)</p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/bridge_graph.png" /></p>
+<p><em>See below for edge betweenness definition.</em></p>
+<h3 id="number_of_bridges"><strong>number_of_bridges</strong> <a name= 'numberofbridges' /><a class="headerlink" href="#number_of_bridges" title="Permanent link">&para;</a></h3>
+<p>Provides the number of bridges in the cluster. </p>
+<pre><code class="language-python">number_of_bridges(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Number of Bridges</code><br>
+The number of edges that join two clusters together (a bridge). </p>
+<p><span style="color:red"><strong>A high bridge count could suggest that there are edges linking multiple clusters together when they shouldn't. This cluster should therefore be clerically reviewed.</strong></span></p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/edge_between_bridges.png" /></p>
+<h3 id="cluster_assortativity"><strong>cluster_assortativity</strong> <a name= 'clusterassortativity' /><a class="headerlink" href="#cluster_assortativity" title="Permanent link">&para;</a></h3>
+<p>Calculates the assortativity of a cluster. </p>
+<pre><code class="language-python">cluster_assortativity(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Cluster Assortativity</code><br>
+“Assortativity is a graph metric. It represents to what extent nodes in a network associate with other nodes in the network, being of similar sort or being of opposing sort... A network is said to be assortative when high degree nodes are, on average, connected to other nodes with high degree and low degree nodes are, on average, connected to other nodes with low degree. A network is said to be disassortative when, on average, high degree nodes are connected to nodes with low(er) degree and, on average, low degree nodes are connected to nodes with high(er) degree"  - (<a href="[https://nas.ewi.tudelft.nl/people/Piet/papers/JCN2015AssortativitySurveyRogier.pdf]">Noldus and Mieghem (2015)</a>).</p>
+<p><span style="color:red"><strong>This metric ranges from +1 to -1. The more negative this metric is, the more suspicious this cluster looks, and clusters -0.2 or lower should be clerically reviewed.</strong></span></p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/assortativity.png" /></p>
+<h3 id="cluster_efficiency"><strong>cluster_efficiency</strong> <a name= 'clusterefficiency' /><a class="headerlink" href="#cluster_efficiency" title="Permanent link">&para;</a></h3>
+<p><em>code to be added</em></p>
+<p><code>Cluster Effiiency</code><br>
+“For the efficiency it holds that the greater the value, the greater the robustness, because the reciprocals of the path lengths are used. The advantage of this measure is that it can be used for unconnected networks, such as social networks or networks subject to failures. Otherwise, it has the same disadvantage as the average path length; alternative paths are not considered”  - (<a href="[https://arxiv.org/pdf/1311.5064]">Ellens and Kooij (2013)</a>)</p>
+<h2 id="node-metrics">Node Metrics <a name= 'nodemetrics' /><a class="headerlink" href="#node-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="eigencentrality"><strong>eigencentrality</strong> <a name= 'eigencentrality' /><a class="headerlink" href="#eigencentrality" title="Permanent link">&para;</a></h3>
+<p>Provides the eingenvector centrality of a cluster. </p>
+<pre><code class="language-python">eigencentrality(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Eigencentrality</code><br>
+Eigenvector Centrality is an algorithm that measures the transitive influence or connectivity of nodes.
+Relationships to high-scoring nodes contribute more to the score of a node than connections to low-scoring nodes.</p>
+<p><span style="color:green"><strong>A high score means that a node is connected to other nodes that have high scores.</strong></span></p>
+<h3 id="harmoniccentrality"><strong>harmoniccentrality</strong> <a name= 'harmoniccentrality' /><a class="headerlink" href="#harmoniccentrality" title="Permanent link">&para;</a></h3>
+<p>Provides the harmonic centrality of a cluster. </p>
+<pre><code class="language-python">harmoniccentrality(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Harmonic Centrality</code><br>
+Harmonic centrality (also known as valued centrality) is a variant of closeness centrality, that was invented
+to solve the problem the original formula had when dealing with unconnected graphs.
+Rather than summing the distances of a node to all other nodes, the harmonic centrality algorithm sums the inverse of those distances.
+This enables it deal with infinite values.</p>
+<h2 id="edge-metrics">Edge Metrics <a name= 'edgemetrics' /><a class="headerlink" href="#edge-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="edgebetweeness"><strong>edgebetweeness</strong> <a name= 'edgebetweeness' /><a class="headerlink" href="#edgebetweeness" title="Permanent link">&para;</a></h3>
+<p>Provides the edge betweeness. </p>
+<pre><code class="language-python">edgebetweeness(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, distance_colname = &quot;distance&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Edge Betweeness</code><br>
+“The edge betweeness graph metric counts the number of shortest paths between any two nodes from the cluster that use this edge. If there is more than one shortest path between a pair of nodes, each path is assigned equal weight such that the total weight of all of the paths is equal to unity."  - (<a href="[https://gss.civilservice.gov.uk/wp-content/uploads/2016/07/1.4.2-Christos-Chatzoglou-Use-of-graph-databases-to-improve-the-management-and-quality-of-linked-data.docx]">Chatzoglou, Manassis, et al (2016)</a>).</p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/bridge_graph.png" /></p>
+<p><span style="color:red"><strong>A high edge betweeness is cause for concern and so clusters may need to be clerically reviewed.</strong></span></p>
+<h3 id="bridge_edges"><strong>bridge_edges</strong> <a name= 'bridgeedges' /><a class="headerlink" href="#bridge_edges" title="Permanent link">&para;</a></h3>
+<p>Returns any edges that are bridges.</p>
+<pre><code class="language-python">bridge_edges(sparkdf, src=&quot;src&quot;, dst=&quot;dst&quot;, distance_colname = &quot;distance&quot;, cluster_id_colname=&quot;cluster_id&quot;)
+</code></pre>
+<p><code>Bridge Edges</code><br>
+Bridge Edges are edges which join together two distinct clusters. I.e. any edges that if removed increase the total number of clusters. 
+When bridges are present, this increases the edge betweeness of the cluster. </p>
+<p><img alt="" src="https://github.com/moj-analytical-services/splink_graph/blob/master/docs/assets/edge_between_bridges.png" /></p>
+<h2 id="resources">Resources <a name= 'resources'/><a class="headerlink" href="#resources" title="Permanent link">&para;</a></h2>
+<p>For more information regarding the <strong>splink-graph package</strong>, please see MoJ github: <a href="https://github.com/moj-analytical-services/splink_graph">https://github.com/moj-analytical-services/splink_graph</a>.</p>
+<p>For a more in-depth look into <strong>graph data and graph theory</strong>, please see <a href="http://networksciencebook.com/">Network Science</a> by Albert-László Barabási. </p>
+<h2 id="references">References <a name= 'references'/><a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p>Chatzoglou, C., Manassis, T., Gammon, S. and Swier, N., 2016. Use of Graph Databases to Improve the Management and Quality of Linked Data.
+<a href="https://espace.curtin.edu.au/bitstream/handle/20.500.11937/3205/199679_199679.pdf?sequence=2&amp;isAllowed=y">https://espace.curtin.edu.au/bitstream/handle/20.500.11937/3205/199679_199679.pdf?sequence=2&amp;isAllowed=y</a></p>
+<p>Croset, S., Rupp, J. and Romacker, M., 2016. Flexible data integration and curation using a graph-based approach. Bioinformatics, 32(6), pp.918-925. <a href="https://academic.oup.com/bioinformatics/article/32/6/918/1743746">https://academic.oup.com/bioinformatics/article/32/6/918/1743746</a></p>
+<p>Ellens, W. and Kooij, R.E., 2013. Graph measures and network robustness. arXiv preprint arXiv:1311.5064.
+<a href="https://arxiv.org/pdf/1311.5064">https://arxiv.org/pdf/1311.5064</a></p>
+<p>Noldus, R. and Van Mieghem, P., 2015. Assortativity in complex networks. Journal of Complex Networks, 3(4), pp.507-542.
+<a href="https://nas.ewi.tudelft.nl/people/Piet/papers/JCN2015AssortativitySurveyRogier.pdf">https://nas.ewi.tudelft.nl/people/Piet/papers/JCN2015AssortativitySurveyRogier.pdf</a></p>
+<p>Randall, S.M., Boyd, J.H., Ferrante, A.M., Bauer, J.K. and Semmens, J.B., 2014. Use of graph theory measures to identify errors in record linkage. Computer methods and programs in biomedicine, 115(2), pp.55-63.
+<a href="https://espace.curtin.edu.au/bitstream/handle/20.500.11937/3205/199679_199679.pdf?sequence=2&amp;isAllowed=y">https://espace.curtin.edu.au/bitstream/handle/20.500.11937/3205/199679_199679.pdf?sequence=2&amp;isAllowed=y</a></p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": ".", "features": ["content.code.annotate", "content.tabs.link", "header.autohide", "search.highlight", "search.share", "search.suggest"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.b1047164.min.js"></script>
+      
+    
+  </body>
+</html>
