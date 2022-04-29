@@ -1,0 +1,44 @@
+site_name: splink_graph
+use_directory_urls: false
+repo_url: https://github.com/moj-analytical-services/splink_graph
+markdown_extensions:
+  - toc:
+      permalink: True
+theme:
+  name: "material"
+  features:
+    - content.code.annotate
+    - content.tabs.link
+    - header.autohide
+    - search.highlight
+    - search.share
+    - search.suggest
+  logo: "img/favicon.ico"
+  favicon: "img/favicon.ico"
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - scheme: slate
+      primary: purple
+      accent: red
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to light mode
+plugins:
+  - search
+  - semiliterate
+  - mknotebooks
+  #  - monorepo
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: false
+      custom_templates: templates
+nav:
+  - splink_graph guide: "splink_graph_guide.md"
