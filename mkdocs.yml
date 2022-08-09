@@ -6,6 +6,9 @@ markdown_extensions:
       permalink: True
 theme:
   name: "material"
+  font:
+    text: Roboto
+    code: Roboto Mono
   features:
     - content.code.annotate
     - content.tabs.link
