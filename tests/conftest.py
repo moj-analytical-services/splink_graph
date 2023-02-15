@@ -22,7 +22,7 @@ def spark():
         conf.set("spark.sql.execution.arrow.enabled", "true")
         conf.set("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
         os.environ["ARROW_PRE_0_15_IPC_FORMAT"] = "1"
-    elif pyspark.__version__ == "3.0.1":
+    elif (pyspark.__version__).startswith("3"):
         conf.set(
             "spark.driver.extraJavaOptions",
             "-Dio.netty.tryReflectionSetAccessible=true",
@@ -50,16 +50,8 @@ def sparkSessionwithgraphframes():
     conf.set("spark.jars.ivy", "/home/jovyan/.ivy2/")
     conf.set("spark.driver.memory", "4g")
     conf.set("spark.sql.shuffle.partitions", "24")
-
-    if (pyspark.__version__).startswith("2"):
-        conf.set("spark.sql.execution.arrow.enabled", "true")
-        conf.set("spark.executorEnv.ARROW_PRE_0_15_IPC_FORMAT", "1")
-        conf.set(
-            "spark.jars",
-            "jars/graphframes-0.6.0-spark2.3-s_2.11.jar,jars/scala-logging-api_2.11-2.1.2.jar,jars/scala-logging-slf4j_2.11-2.1.2.jar",
-        )
-        os.environ["ARROW_PRE_0_15_IPC_FORMAT"] = "1"
-    elif pyspark.__version__ == "3.0.1":
+    conf.set("spark.jars", "jars/graphframes-0.8.2-spark3.1-s_2.12.jar")
+    if pyspark.__version__ .startswith("3"):
         conf.set(
             "spark.driver.extraJavaOptions",
             "-Dio.netty.tryReflectionSetAccessible=true",
@@ -68,9 +60,7 @@ def sparkSessionwithgraphframes():
             "spark.executor.extraJavaOptions",
             "-Dio.netty.tryReflectionSetAccessible=true",
         )
-        conf.set("spark.jars", "jars/graphframes-0.8.0-spark3.0-s_2.12.jar")
-    else:
-        conf.set("spark.jars", "jars/graphframes-0.8.0-spark3.0-s_2.12.jar")
+        
 
     sc = SparkContext.getOrCreate(conf=conf)
 

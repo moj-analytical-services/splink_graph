@@ -12,17 +12,14 @@ include = [
     "LICENSE","jars/*.jar","notebooks/data/df_e.snappy.parquet","notebooks/graphframes_splink_graph_demo.ipynb"
 ]
 [tool.poetry.dependencies]
-python = ">=3.6"
-
-networkx = "~2.5.1"
-scipy = [{version = "1.5.4" , python = "~3.6"},
-        {version = "1.6.0" , python = "^3.7"}
-        ]
-numpy = "1.19.5"
+python = ">=3.8"
+networkx = "~2.7.1"
+numpy = ">=1.20"
+scipy = ">=1.8"
 gensim = "<4.1.0"
 node2vec = "0.4.3"
-graphframes = ">=0.6.0"
+graphframes = ">=0.8.2"
 [tool.poetry.dev-dependencies]
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["setuptools", "poetry_core>=1.0"]
+build-backend = "poetry.core.masonry.api"

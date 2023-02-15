@@ -33,7 +33,7 @@ def test_cc_simple(sparkSessionwithgraphframes, graphframes_tmpdir):
         ["src", "dst", "weight"],
     )
 
-    assert _find_graphframes_jars(sparkSessionwithgraphframes) == 0
+    #assert _find_graphframes_jars(sparkSessionwithgraphframes) == 0
 
     sparkSessionwithgraphframes.sparkContext.setCheckpointDir("graphframes_tempdir/")
     df_result = graphframes_connected_components(

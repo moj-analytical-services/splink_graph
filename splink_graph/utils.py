@@ -30,7 +30,7 @@ def _create_spark_jars_string():
             + "jars/scala-logging-slf4j_2.11-2.1.2.jar"
         )
     else:
-        spark_jars_string = sitestr + "jars/graphframes-0.8.0-spark3.0-s_2.12"
+        spark_jars_string = sitestr + "jars/graphframes-0.8.2-spark3.1-s_2.12"
     return spark_jars_string.replace(" ", "")
 
 
