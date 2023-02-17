@@ -1,17 +1,48 @@
 name: continuous-integration-workflow.yml
 
-on: [push]
+
+on:
+  pull_request:
+    branches:
+      - master
 
 jobs:
-  build:
-
+  preview:
+    name: Test splinkgraph
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8']
     steps:
-    - uses: actions/checkout@v1
-    - name: Get and run the base moj spark local Docker image for testing
-      run:  |
-        docker build . --file Dockerfile_testrunner --tag testdocker
-        docker run --rm \
-          --env COVERALLS_REPO_TOKEN=${{ secrets.GITHUB_TOKEN }} --env COVERALLS_SERVICE_NAME=github \
-          --env GITHUB_REF=${{ github.ref }} \
-          testdocker
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/setup-java@v2
+        with:
+          distribution: "zulu"
+          java-version: "8"
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest wheel
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install "git+https://github.com/mamonu/graphframes.git@master#egg=graphframes&subdirectory=python"
+      - name: Setup Spark
+        env:
+          SPARK_VERSION: 3.1.1
+          HADOOP_VERSION: 3.2
+        run: |
+          wget https://archive.apache.org/dist/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz
+          tar -xzf spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz -C $HOME
+          rm spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz
+          ln -s $HOME/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION $HOME/spark
+          export SPARK_HOME=$HOME/spark 
+          echo SPARK_HOME=$SPARK_HOME >> $GITHUB_ENV
+          echo $SPARK_HOME/bin >> $GITHUB_PATH
+      - name: Run tests with pytest
+        run: |
+          pytest -vv
