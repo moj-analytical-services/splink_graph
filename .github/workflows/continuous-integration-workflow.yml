@@ -1,11 +1,6 @@
 name: continuous-integration-workflow.yml
 
-
-on:
-  pull_request:
-    branches:
-      - master
-
+on:  [push,pull_request]  
 jobs:
   preview:
     name: Test splinkgraph
