@@ -1,26 +1,52 @@
-# How to install splink_graph
+# How to install splink_graph 0.8.2 for Spark 3.x
 
-The easiest way to install splink_graph is to type
+splink_graph 0.8.2 is suitable for Spark 3.x only
 
-`pip install --upgrade splink_graph`
+
+The easiest way to install splink_graph 0.8.2  is to type
+
+`pip install splink_graph==0.8.2` in case of using Spark 3.x or
+`pip install splink_graph==0.5.0` in case of using Spark 2.4.x
 
 on your terminal
 
+
+
+splink_graph  assumes the existance of PySpark (either 2.3.x/2.3.4 or 3.x) but this is not an enforcable dependency. Without Pyspark however splink_graph will not work.
+
+
+If the connected components for bigger workloads functionality is needed then graphframes library needs to be installed. 
+Before installing splink_graph 0.8.2 it is reccomended to install the following fork of the graphframes library that make it possible to have the latest graphframes Scala code (0.8.2) available for Spark 3.1.x installations.
+
+`pip install "git+https://github.com/mamonu/graphframes.git@master#egg=graphframes&subdirectory=python"`
+
+
+Without this the connected components function will not work.
+
+
+## Using Pandas UDFs in Python in Pyspark 3.x
+
+This package uses Pandas UDFs for certain functionality.Pandas UDFs are built on top of Apache Arrow and bring 
+the best of both worlds: the ability to define low-overhead, high-performance UDFs entirely in Python.
+With Apache Arrow, it is possible to exchange data directly between JVM and Python driver/executors with near-zero (de)serialization cost.
+
+There is no need for any special configuration for getting Pandas UDFs to work on Spark 3.x 😊
+
+# How to install splink_graph 0.5.0 for Spark 2.x
+
+The easiest way to install splink_graph 0.5.0 (for Spark 2.4.x) is to type
+
+
+`pip install splink_graph==0.5.0` 
+
+on your terminal
+
+## Pyspark 2.4.x Configuration and installation details 
 
 There are some dependencies such as `numpy` that needs to be version "1.19.5" 
 and `scipy` needs to be ">= 1.6.0"
 
 But hopefully these are taken care of automatically when the package is installed.
-
-
-There is a more important dependency on pyarrow for Pyspark 2.4.x that is discussed below
-
-splink_graph also assumes the existance of PySpark (either 2.3.x/2.3.4 or 3.x) but this is not an enforcable dependency.
-Without Pyspark however splink_graph will not work.
-
-## Configuration details 
-
-
 
 ### Using Pandas UDFs in Python in Pyspark 2.4.x : prerequisites
 
@@ -57,9 +83,6 @@ Please install the following before trying to install splink_graph ,and see this
 `pip install gensim==3.8.3` or `pip install gensim==4.0.1` if you need the latest version of gensim. For the time being gensim 4.1.0 doesnt work in some configurations
 
 
-### Using Pandas UDFs in Python in Pyspark 3.x
-
-No need for any special configuration.
 
 
 ## Testing

@@ -1,5 +1,5 @@
 
-![](https://img.shields.io/badge/spark-%3E%3D2.4.x-orange) ![](https://img.shields.io/github/languages/top/moj-analytical-services/splink_graph) ![](https://img.shields.io/pypi/v/splink_graph) ![PyVersions](https://img.shields.io/pypi/pyversions/splink_graph) ![Downloads](https://pepy.tech/badge/splink-graph) 
+![](https://img.shields.io/badge/spark-%3E%3D3.1.x-orange) ![](https://img.shields.io/github/languages/top/moj-analytical-services/splink_graph) ![](https://img.shields.io/pypi/v/splink_graph) ![PyVersions](https://img.shields.io/pypi/pyversions/splink_graph) ![Downloads](https://pepy.tech/badge/splink-graph) 
 
 # splink_graph: Graph metrics for data linkage at scale
 
