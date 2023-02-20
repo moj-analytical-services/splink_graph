@@ -1,5 +1,5 @@
 
-![](https://img.shields.io/badge/spark-%3E%3D3.1.x-orange) ![](https://img.shields.io/github/languages/top/moj-analytical-services/splink_graph) ![](https://img.shields.io/pypi/v/splink_graph) ![PyVersions](https://img.shields.io/pypi/pyversions/splink_graph) ![Downloads](https://pepy.tech/badge/splink-graph) 
+![](https://img.shields.io/badge/spark-%3E%3D3.1.x-orange)  ![](https://img.shields.io/pypi/v/splink_graph) ![PyVersions](https://img.shields.io/pypi/pyversions/splink_graph) ![Downloads](https://pepy.tech/badge/splink-graph) 
 
 # splink_graph: Graph metrics for data linkage at scale
 
@@ -34,8 +34,20 @@ If you have spark data in a format that can be represented as a network/graph th
 - Another use is to provide support for feature engineering from the subgraphs/clusters for supervised and unsupervised ML downstream uses.
 
 ## How to Install :
+
+Note that splink_graph 0.8.2 is suitable for Spark 3.x only
+
+
+The easiest way to install splink_graph 0.8.2  is to type
+
+`pip install splink_graph==0.8.2` in your terminal
+
+If you are interested in running splink_graph in a Spark 2.4.x environment then type 
+
+`pip install splink_graph==0.5.0` . Codewise all 0.5.0 code is located at the `splink_graph_0_5_0` branch
+
 For dependencies and other important technical info so you can run these functions without an issue please consult
-`INSTALL.md` on this repo
+`INSTALL.md` on this repo, as for each Spark version there are specific prerequisite actions you might need to take in order to not face issues.
 
 ## Functionality offered :
 
