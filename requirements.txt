@@ -7,4 +7,4 @@ pandas==1.5.2
 pytest==7.1.1
 pytest-order
 scipy==1.7.3
-pyarrow==4.0.0
+pyarrow==14.0.1
